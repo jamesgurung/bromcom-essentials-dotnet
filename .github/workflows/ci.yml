@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-pack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+      - name: Restore
+        run: dotnet restore BromcomEssentials.slnx
+      - name: Build
+        run: dotnet build BromcomEssentials.slnx --configuration Release --no-restore -v minimal
+      - name: Pack
+        run: dotnet pack ./src/BromcomEssentials.csproj --configuration Release --no-build -v minimal --output ./artifacts
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: ./artifacts/*.nupkg
