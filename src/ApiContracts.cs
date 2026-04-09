@@ -126,3 +126,14 @@ internal sealed class SubjectContract
   public int SubjectId { get; set; }
   public string? Abbreviation { get; set; }
 }
+
+internal sealed class AssessmentResultContract
+{
+  public int StudentId { get; set; }
+  public string? Result { get; set; }
+  public string? EnteredDate { get; set; }
+  public string? TermName { get; set; }
+  public string? YearGroupName { get; set; }
+  public string? SubjectName { get; set; }
+  public string? IsGrade { get; set; }
+}

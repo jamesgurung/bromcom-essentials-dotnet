@@ -153,6 +153,26 @@ public class BromcomClient : IDisposable
     }).OrderBy(d => d.Name).ToList();
   }
 
+  public async Task<IReadOnlyList<AssessmentResult>> GetResultsAsync(int schoolId, int academicYearStart, string? term = null, int? yearGroup = null,
+    bool gradesOnly = false,
+    CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+    if (academicYearStart < 1900) throw new ArgumentOutOfRangeException(nameof(academicYearStart), "Academic year start must be a valid year.");
+
+    var entityFilter = BuildAssessmentResultsEntityFilter(academicYearStart, term, yearGroup, gradesOnly);
+    var results = await GetAsync<AssessmentResultContract>("/v2/AssociationAssessmentResultsRaw", schoolId, entityFilter, null, cancellationToken);
+
+    return results.Where(row => !string.IsNullOrWhiteSpace(row.Result)).Select(row => new AssessmentResult
+    {
+      StudentId = row.StudentId,
+      YearGroup = ParseNullableInt(row.YearGroupName),
+      Term = CleanString(row.TermName),
+      Subject = CleanString(row.SubjectName),
+      Result = CleanString(row.Result)!
+    }).OrderBy(r => r.StudentId).ThenBy(r => r.YearGroup).ThenBy(r => r.Term).ThenBy(r => r.Subject).ThenBy(r => r.Result).ToList();
+  }
+
   private static List<ParentContact> BuildParentContacts(StudentFlatViewContract student)
   {
     var parents = new List<ParentContact>(3);
@@ -255,6 +275,25 @@ public class BromcomClient : IDisposable
     var today = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     return $"{dateFieldPrefix}startDate <='{today}' and ({dateFieldPrefix}endDate>='{today}' or isnull({dateFieldPrefix}endDate,'')='')";
   }
+
+  private static string BuildAssessmentResultsEntityFilter(int academicYearStart, string? term, int? yearGroup, bool gradesOnly)
+  {
+    var start = new DateOnly(academicYearStart, 9, 1);
+    var endExclusive = new DateOnly(academicYearStart + 1, 9, 1);
+    var filters = new List<string>
+    {
+      $"enteredDate>='{start:yyyy-MM-dd}'",
+      $"enteredDate<'{endExclusive:yyyy-MM-dd}'"
+    };
+
+    if (term is not null) filters.Add($"termName='{EscapeEntityFilterValue(term)}'");
+    if (yearGroup is not null) filters.Add($"yearGroupName='{yearGroup.Value.ToString(CultureInfo.InvariantCulture)}'");
+    if (gradesOnly) filters.Add("isGrade='True'");
+
+    return string.Join(" and ", filters);
+  }
+
+  private static string EscapeEntityFilterValue(string value) => value.Replace("'", "''", StringComparison.Ordinal);
 
   private static string? CleanString(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 

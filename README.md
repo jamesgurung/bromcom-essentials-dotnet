@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, and department data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, department, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -13,6 +13,7 @@ using var client = new BromcomClient(applicationId, applicationSecret);
 var students = await client.GetStudentsAsync(schoolId, includeClasses: true, includeTimetable: true);
 var staff = await client.GetStaffAsync(schoolId, includeClassesAndTimetable: true);
 var departments = await client.GetDepartmentsAsync(schoolId);
+var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearGroup: 7, gradesOnly: true);
 ```
 
 ## Data model
@@ -102,8 +103,21 @@ var departments = await client.GetDepartmentsAsync(schoolId);
 | `TeacherIds` | `IReadOnlyList<int>` |
 | `SubjectCodes` | `IReadOnlyList<string>` |
 
+### `AssessmentResult`
+
+Returns assessment results entered during the academic year that starts on 1 September of `academicYearStart` and ends on 31 August of the following year. Set `term`, `yearGroup`, and `gradesOnly` to add the corresponding upstream entity filters.
+
+| Property | Type |
+| --- | --- |
+| `StudentId` | `int` |
+| `YearGroup` | `int?` |
+| `Term` | `string?` |
+| `Subject` | `string?` |
+| `Result` | `string` |
+
 ## Upstream API endpoints
 
+* `/v2/AssociationAssessmentResultsRaw`
 * `/v2/Departments`
 * `/v2/DepartmentTeachers`
 * `/v2/Staff`

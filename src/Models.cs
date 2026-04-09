@@ -78,3 +78,12 @@ public sealed class Department
   public IReadOnlyList<int> TeacherIds { get; init; } = [];
   public IReadOnlyList<string> SubjectCodes { get; init; } = [];
 }
+
+public sealed class AssessmentResult
+{
+  public int StudentId { get; init; }
+  public int? YearGroup { get; init; }
+  public string? Term { get; init; }
+  public string? Subject { get; init; }
+  public required string Result { get; init; }
+}
