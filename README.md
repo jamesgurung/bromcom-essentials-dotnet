@@ -110,6 +110,7 @@ Returns assessment results entered during the academic year that starts on 1 Sep
 | Property | Type |
 | --- | --- |
 | `StudentId` | `int` |
+| `Type` | `string` |
 | `YearGroup` | `int?` |
 | `Term` | `string?` |
 | `Subject` | `string?` |

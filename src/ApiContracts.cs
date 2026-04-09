@@ -130,6 +130,7 @@ internal sealed class SubjectContract
 internal sealed class AssessmentResultContract
 {
   public int StudentId { get; set; }
+  public string? AssessmentTypeName { get; set; }
   public string? Result { get; set; }
   public string? EnteredDate { get; set; }
   public string? TermName { get; set; }

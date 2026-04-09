@@ -82,6 +82,7 @@ public sealed class Department
 public sealed class AssessmentResult
 {
   public int StudentId { get; init; }
+  public required string Type { get; init; }
   public int? YearGroup { get; init; }
   public string? Term { get; init; }
   public string? Subject { get; init; }

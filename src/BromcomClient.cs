@@ -163,9 +163,10 @@ public class BromcomClient : IDisposable
     var entityFilter = BuildAssessmentResultsEntityFilter(academicYearStart, term, yearGroup, gradesOnly);
     var results = await GetAsync<AssessmentResultContract>("/v2/AssociationAssessmentResultsRaw", schoolId, entityFilter, null, cancellationToken);
 
-    return results.Where(row => !string.IsNullOrWhiteSpace(row.Result)).Select(row => new AssessmentResult
+    return results.Where(row => !string.IsNullOrWhiteSpace(row.AssessmentTypeName) && !string.IsNullOrWhiteSpace(row.Result)).Select(row => new AssessmentResult
     {
       StudentId = row.StudentId,
+      Type = CleanString(row.AssessmentTypeName)!,
       YearGroup = ParseNullableInt(row.YearGroupName),
       Term = CleanString(row.TermName),
       Subject = CleanString(row.SubjectName),
