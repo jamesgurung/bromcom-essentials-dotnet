@@ -16,6 +16,18 @@ internal sealed class StudentFlatViewContract
   public string? GenderCode { get; set; }
   public string? DateOfBirth { get; set; }
   public string? StudentEmail { get; set; }
+  public string? Upn { get; set; }
+  public string? ExamNumber { get; set; }
+  public string? AdmissionNumber { get; set; }
+  public string? EthnicityCode { get; set; }
+  public string? ProvisionName { get; set; }
+  public string? GntFlag { get; set; }
+  public string? EverFsm6Flag { get; set; }
+  public string? InCareFlag { get; set; }
+  public string? EalFlag { get; set; }
+  public bool? PremiumPupilFlag { get; set; }
+  public string? EnrolmentStateName { get; set; }
+  public decimal? PresentPercentageWithEA { get; set; }
   public string? YearGroup { get; set; }
   public string? TutorGroupName { get; set; }
   public string? Contact1Name { get; set; }
@@ -39,6 +51,7 @@ internal sealed class YearGroupSubjectStudentContract
 {
   public int StudentId { get; set; }
   public string? ClassName { get; set; }
+  public string? SubjectDescription { get; set; }
 }
 
 internal sealed class StaffContract

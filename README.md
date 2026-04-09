@@ -27,10 +27,21 @@ var departments = await client.GetDepartmentsAsync(schoolId);
 | `Gender` | `string?` |
 | `DateOfBirth` | `DateOnly?` |
 | `Email` | `string?` |
+| `Upn` | `string?` |
+| `ExamNumber` | `int?` |
+| `AdmissionNumber` | `int?` |
+| `EthnicCode` | `string?` |
+| `SendStatusCode` | `string?` |
+| `IsGiftedAndTalented` | `bool` |
+| `IsFsmEver6` | `bool` |
+| `IsEal` | `bool` |
+| `IsLookedAfter` | `bool` |
+| `IsPupilPremium` | `bool` |
+| `EnrolmentStatus` | `string?` |
 | `YearGroup` | `int?` |
 | `TutorGroup` | `string?` |
 | `Parents` | `IReadOnlyList<ParentContact>` |
-| `Classes` | `IReadOnlyList<string>` |
+| `Classes` | `IReadOnlyList<StudentClass>` |
 | `Timetable` | `IReadOnlyList<StudentTimetableEntry>` |
 
 #### `ParentContact`
@@ -41,6 +52,13 @@ var departments = await client.GetDepartmentsAsync(schoolId);
 | `Telephone` | `string?` |
 | `Email` | `string?` |
 | `Relationship` | `string?` |
+
+#### `StudentClass`
+
+| Property | Type |
+| --- | --- |
+| `Name` | `string` |
+| `Subject` | `string?` |
 
 #### `StudentTimetableEntry`
 

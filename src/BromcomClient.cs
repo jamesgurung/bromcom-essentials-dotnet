@@ -35,14 +35,16 @@ public class BromcomClient : IDisposable
     ObjectDisposedException.ThrowIf(_disposed, this);
 
     var students = await GetAsync<StudentFlatViewContract>("/v2/StudentFlatView", schoolId, null, "enrolment", cancellationToken);
-    var classesByStudentId = new Dictionary<int, List<string>>();
+    var classesByStudentId = new Dictionary<int, List<StudentClass>>();
     var timetableByStudentId = new Dictionary<int, List<StudentTimetableEntry>>();
 
     if (includeClasses)
     {
       var classes = await GetAsync<YearGroupSubjectStudentContract>("/v2/YearGroupSubjectStudents", schoolId, null, null, cancellationToken);
       classesByStudentId = classes.Where(x => !string.IsNullOrWhiteSpace(x.ClassName)).GroupBy(x => x.StudentId).ToDictionary(
-        g => g.Key, g => g.Select(x => CleanString(x.ClassName)!).Distinct(StringComparer.OrdinalIgnoreCase).ToList());
+        g => g.Key,
+        g => g.Select(x => new StudentClass { Name = CleanString(x.ClassName)!, Subject = CleanString(x.SubjectDescription) })
+          .DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList());
     }
 
     if (includeTimetable)
@@ -66,7 +68,19 @@ public class BromcomClient : IDisposable
       DateOfBirth = row.DateOfBirth is null || row.DateOfBirth.Length < 10
         ? null : (DateOnly.TryParseExact(row.DateOfBirth[..10], "yyyy-MM-dd", out var dob) ? dob : null),
       Email = CleanString(row.StudentEmail)?.ToLowerInvariant(),
-      YearGroup = ParseYearGroup(row.YearGroup),
+      Upn = CleanString(row.Upn),
+      ExamNumber = ParseNullableInt(row.ExamNumber),
+      AdmissionNumber = ParseNullableInt(row.AdmissionNumber),
+      EthnicCode = CleanString(row.EthnicityCode),
+      SendStatusCode = CleanString(row.ProvisionName),
+      IsGiftedAndTalented = ParseBooleanFlag(row.GntFlag),
+      IsFsmEver6 = ParseBooleanFlag(row.EverFsm6Flag),
+      IsLookedAfter = ParseBooleanFlag(row.InCareFlag),
+      IsEal = ParseBooleanFlag(row.EalFlag),
+      IsPupilPremium = row.PremiumPupilFlag == true,
+      EnrolmentStatus = ParseEnrolmentStatus(row.EnrolmentStateName),
+      Attendance = row.PresentPercentageWithEA,
+      YearGroup = ParseNullableInt(row.YearGroup),
       TutorGroup = CleanTutorGroup(row.TutorGroupName),
       Parents = BuildParentContacts(row),
       Classes = classesByStudentId.TryGetValue(row.StudentId, out var classes) ? classes : [],
@@ -150,7 +164,7 @@ public class BromcomClient : IDisposable
 
   private static void TryAddParent(List<ParentContact> parents, string? parentalResponsibility, string? name, string? telephone, string? email, string? relationship)
   {
-    if (!string.Equals(CleanString(parentalResponsibility), "Yes", StringComparison.OrdinalIgnoreCase)) return;
+    if (!ParseBooleanFlag(parentalResponsibility)) return;
     parents.Add(new ParentContact
     {
       Name = CleanParentName(name),
@@ -244,8 +258,18 @@ public class BromcomClient : IDisposable
 
   private static string? CleanString(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
-  private static int? ParseYearGroup(string? value) => int.TryParse(value?.Replace("Year ", string.Empty, StringComparison.OrdinalIgnoreCase),
-    NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedValue) ? parsedValue : null;
+  private static bool ParseBooleanFlag(string? value) => value?.Equals("yes", StringComparison.OrdinalIgnoreCase) ?? false;
+
+  private static int? ParseNullableInt(string? value) => int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+
+  private static string? ParseEnrolmentStatus(string? statusCode) => statusCode switch
+  {
+    "C" => "Single Registration",
+    "M" => "Main - Dual Registration",
+    "S" => "Subsidiary - Dual Registration",
+    "G" => "Guest",
+    _ => null
+  };
 
   private static string? CleanRoom(string? value)
   {

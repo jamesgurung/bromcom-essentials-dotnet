@@ -8,10 +8,22 @@ public sealed class Student
   public string? Gender { get; init; }
   public DateOnly? DateOfBirth { get; init; }
   public string? Email { get; init; }
+  public string? Upn { get; init; }
+  public int? ExamNumber { get; init; }
+  public int? AdmissionNumber { get; init; }
+  public string? EthnicCode { get; init; }
+  public string? SendStatusCode { get; init; }
+  public bool IsGiftedAndTalented { get; init; }
+  public bool IsFsmEver6 { get; init; }
+  public bool IsEal { get; init; }
+  public bool IsLookedAfter { get; init; }
+  public bool IsPupilPremium { get; init; }
+  public string? EnrolmentStatus { get; init; }
   public int? YearGroup { get; init; }
   public string? TutorGroup { get; init; }
+  public decimal? Attendance { get; init; }
   public IReadOnlyList<ParentContact> Parents { get; init; } = [];
-  public IReadOnlyList<string> Classes { get; init; } = [];
+  public IReadOnlyList<StudentClass> Classes { get; init; } = [];
   public IReadOnlyList<StudentTimetableEntry> Timetable { get; init; } = [];
 }
 
@@ -21,6 +33,12 @@ public sealed class ParentContact
   public string? Telephone { get; init; }
   public string? Email { get; init; }
   public string? Relationship { get; init; }
+}
+
+public sealed class StudentClass
+{
+  public required string Name { get; init; }
+  public string? Subject { get; init; }
 }
 
 public sealed class StudentTimetableEntry
