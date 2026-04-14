@@ -13,6 +13,8 @@ internal sealed class StudentFlatViewContract
   public int StudentId { get; set; }
   public string? PreferredFirstName { get; set; }
   public string? PreferredLastName { get; set; }
+  public string? FirstName { get; set; }
+  public string? LastName { get; set; }
   public string? GenderCode { get; set; }
   public string? DateOfBirth { get; set; }
   public string? StudentEmail { get; set; }
@@ -60,6 +62,8 @@ internal sealed class StaffContract
   public string? Title { get; set; }
   public string? PreferredFirstName { get; set; }
   public string? PreferredLastName { get; set; }
+  public string? FirstName { get; set; }
+  public string? LastName { get; set; }
   public string? WorkEmail { get; set; }
   public string? StaffCode { get; set; }
   public string? JobTitle { get; set; }

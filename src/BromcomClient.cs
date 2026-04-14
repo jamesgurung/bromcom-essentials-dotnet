@@ -62,8 +62,8 @@ public class BromcomClient : IDisposable
     return students.DistinctBy(row => row.StudentId).Select(row => new Student
     {
       Id = row.StudentId,
-      Forename = CleanString(row.PreferredFirstName),
-      Surname = CleanString(row.PreferredLastName),
+      Forename = CleanString(row.PreferredFirstName) ?? CleanString(row.FirstName),
+      Surname = CleanString(row.PreferredLastName) ?? CleanString(row.LastName),
       Gender = CleanString(row.GenderCode),
       DateOfBirth = row.DateOfBirth is null || row.DateOfBirth.Length < 10
         ? null : (DateOnly.TryParseExact(row.DateOfBirth[..10], "yyyy-MM-dd", out var dob) ? dob : null),
@@ -118,8 +118,8 @@ public class BromcomClient : IDisposable
     {
       Id = row.StaffId,
       Title = CleanString(row.Title),
-      Forename = CleanString(row.PreferredFirstName),
-      Surname = CleanString(row.PreferredLastName),
+      Forename = CleanString(row.PreferredFirstName) ?? CleanString(row.FirstName),
+      Surname = CleanString(row.PreferredLastName) ?? CleanString(row.LastName),
       Email = CleanString(row.WorkEmail)?.ToLowerInvariant(),
       StaffCode = CleanString(row.StaffCode),
       JobTitle = CleanString(row.JobTitle),
