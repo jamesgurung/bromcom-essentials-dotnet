@@ -174,6 +174,44 @@ public class BromcomClient : IDisposable
     }).OrderBy(r => r.StudentId).ThenBy(r => r.YearGroup).ThenBy(r => r.Term).ThenBy(r => r.Subject).ThenBy(r => r.Result).ToList();
   }
 
+  public async Task<IReadOnlyList<StudentWeeklyAttendance>> GetAttendancesByWeekAsync(int schoolId, DateOnly date, CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    var dateTime = date.ToDateTime(new TimeOnly(12, 0));
+    var entityFilter = $"startDate<='{dateTime:yyyy-MM-ddTHH:mm:ss}' and endDate>='{dateTime:yyyy-MM-ddTHH:mm:ss}'";
+    var attendances = await GetAsync<StudentAttendanceByWeekContract>("/v2/StudentAttendanceByWeek", schoolId, entityFilter, null, cancellationToken);
+
+    return attendances.Select(row => new StudentWeeklyAttendance
+    {
+      StudentId = row.StudentId,
+      Attendances =
+      [
+        BuildSessionAttendance(DayOfWeek.Monday, SessionType.AM, row.MonAM),
+        BuildSessionAttendance(DayOfWeek.Monday, SessionType.PM, row.MonPM),
+        BuildSessionAttendance(DayOfWeek.Tuesday, SessionType.AM, row.TueAM),
+        BuildSessionAttendance(DayOfWeek.Tuesday, SessionType.PM, row.TuePM),
+        BuildSessionAttendance(DayOfWeek.Wednesday, SessionType.AM, row.WedAM),
+        BuildSessionAttendance(DayOfWeek.Wednesday, SessionType.PM, row.WedPM),
+        BuildSessionAttendance(DayOfWeek.Thursday, SessionType.AM, row.ThuAM),
+        BuildSessionAttendance(DayOfWeek.Thursday, SessionType.PM, row.ThuPM),
+        BuildSessionAttendance(DayOfWeek.Friday, SessionType.AM, row.FriAM),
+        BuildSessionAttendance(DayOfWeek.Friday, SessionType.PM, row.FriPM),
+        BuildSessionAttendance(DayOfWeek.Saturday, SessionType.AM, row.SatAM),
+        BuildSessionAttendance(DayOfWeek.Saturday, SessionType.PM, row.SatPM)
+      ]
+    }).OrderBy(x => x.StudentId).ToList();
+  }
+
+  private static SessionAttendance BuildSessionAttendance(DayOfWeek dayOfWeek, SessionType session, string? value) => new()
+  {
+    DayOfWeek = dayOfWeek,
+    Session = session,
+    IsPresent = ParseAttendanceMark(value)
+  };
+
+  private static bool? ParseAttendanceMark(string? value) => string.IsNullOrEmpty(value) || value[0] == '?' ? null : value[0] is '/' or '\\';
+
   private static List<ParentContact> BuildParentContacts(StudentFlatViewContract student)
   {
     var parents = new List<ParentContact>(3);

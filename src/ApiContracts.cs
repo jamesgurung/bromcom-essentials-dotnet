@@ -142,3 +142,20 @@ internal sealed class AssessmentResultContract
   public string? SubjectName { get; set; }
   public string? IsGrade { get; set; }
 }
+
+internal sealed class StudentAttendanceByWeekContract
+{
+  public int StudentId { get; set; }
+  public string? MonAM { get; set; }
+  public string? MonPM { get; set; }
+  public string? TueAM { get; set; }
+  public string? TuePM { get; set; }
+  public string? WedAM { get; set; }
+  public string? WedPM { get; set; }
+  public string? ThuAM { get; set; }
+  public string? ThuPM { get; set; }
+  public string? FriAM { get; set; }
+  public string? FriPM { get; set; }
+  public string? SatAM { get; set; }
+  public string? SatPM { get; set; }
+}

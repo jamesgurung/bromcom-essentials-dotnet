@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, department, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, department, attendance, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -14,6 +14,7 @@ var students = await client.GetStudentsAsync(schoolId, includeClasses: true, inc
 var staff = await client.GetStaffAsync(schoolId, includeClassesAndTimetable: true);
 var departments = await client.GetDepartmentsAsync(schoolId);
 var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearGroup: 7, gradesOnly: true);
+var attendances = await client.GetAttendancesByWeekAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
 ```
 
 ## Data model
@@ -70,6 +71,30 @@ var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearG
 | `Room` | `string?` |
 | `TeacherCode` | `string?` |
 
+### `StudentWeeklyAttendance`
+
+Returns weekly AM/PM attendance marks for the week containing the requested date.
+
+| Property | Type |
+| --- | --- |
+| `StudentId` | `int` |
+| `Attendances` | `IReadOnlyList<SessionAttendance>` |
+
+#### `SessionAttendance`
+
+| Property | Type |
+| --- | --- |
+| `DayOfWeek` | `DayOfWeek` |
+| `Session` | `SessionType` |
+| `IsPresent` | `bool?` |
+
+#### `SessionType`
+
+| Value |
+| --- |
+| `AM` |
+| `PM` |
+
 ### `Staff`
 
 | Property | Type |
@@ -122,6 +147,7 @@ Returns assessment results entered during the academic year that starts on 1 Sep
 * `/v2/Departments`
 * `/v2/DepartmentTeachers`
 * `/v2/Staff`
+* `/v2/StudentAttendanceByWeek`
 * `/v2/StudentFlatView`
 * `/v2/StudentTimetables`
 * `/v2/Subjects`

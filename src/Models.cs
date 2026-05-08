@@ -49,6 +49,25 @@ public sealed class StudentTimetableEntry
   public string? TeacherCode { get; init; }
 }
 
+public sealed class StudentWeeklyAttendance
+{
+  public int StudentId { get; init; }
+  public IReadOnlyList<SessionAttendance> Attendances { get; init; } = [];
+}
+
+public sealed class SessionAttendance
+{
+  public DayOfWeek DayOfWeek { get; init; }
+  public SessionType Session { get; init; }
+  public bool? IsPresent { get; init; }
+}
+
+public enum SessionType
+{
+  AM,
+  PM
+}
+
 public sealed class Staff
 {
   public int Id { get; init; }
