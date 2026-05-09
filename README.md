@@ -79,6 +79,7 @@ Returns weekly AM/PM attendance marks for the week containing the requested date
 | --- | --- |
 | `StudentId` | `int` |
 | `Attendances` | `IReadOnlyList<SessionAttendance>` |
+| `Percentage` | `decimal` |
 
 #### `SessionAttendance`
 
@@ -86,7 +87,8 @@ Returns weekly AM/PM attendance marks for the week containing the requested date
 | --- | --- |
 | `DayOfWeek` | `DayOfWeek` |
 | `Session` | `SessionType` |
-| `IsPresent` | `bool?` |
+| `Code` | `string?` |
+| `Category` | `AttendanceCategory` |
 
 #### `SessionType`
 
@@ -94,6 +96,18 @@ Returns weekly AM/PM attendance marks for the week containing the requested date
 | --- |
 | `AM` |
 | `PM` |
+
+#### `AttendanceCategory`
+
+| Value |
+| --- |
+| `NotEntered` |
+| `Present` |
+| `ApprovedEducationalActivity` |
+| `AuthorisedAbsence` |
+| `UnauthorisedAbsence` |
+| `NotPossibleAttendance` |
+| `Invalid` |
 
 ### `Staff`
 

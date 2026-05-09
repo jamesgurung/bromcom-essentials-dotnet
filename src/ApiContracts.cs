@@ -156,6 +156,4 @@ internal sealed class StudentAttendanceByWeekContract
   public string? ThuPM { get; set; }
   public string? FriAM { get; set; }
   public string? FriPM { get; set; }
-  public string? SatAM { get; set; }
-  public string? SatPM { get; set; }
 }

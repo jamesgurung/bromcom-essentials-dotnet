@@ -182,11 +182,9 @@ public class BromcomClient : IDisposable
     var entityFilter = $"startDate<='{dateTime:yyyy-MM-ddTHH:mm:ss}' and endDate>='{dateTime:yyyy-MM-ddTHH:mm:ss}'";
     var attendances = await GetAsync<StudentAttendanceByWeekContract>("/v2/StudentAttendanceByWeek", schoolId, entityFilter, null, cancellationToken);
 
-    return attendances.Select(row => new StudentWeeklyAttendance
+    return attendances.Select(row =>
     {
-      StudentId = row.StudentId,
-      Attendances =
-      [
+      var attendances = new SessionAttendance[10] {
         BuildSessionAttendance(DayOfWeek.Monday, SessionType.AM, row.MonAM),
         BuildSessionAttendance(DayOfWeek.Monday, SessionType.PM, row.MonPM),
         BuildSessionAttendance(DayOfWeek.Tuesday, SessionType.AM, row.TueAM),
@@ -196,21 +194,43 @@ public class BromcomClient : IDisposable
         BuildSessionAttendance(DayOfWeek.Thursday, SessionType.AM, row.ThuAM),
         BuildSessionAttendance(DayOfWeek.Thursday, SessionType.PM, row.ThuPM),
         BuildSessionAttendance(DayOfWeek.Friday, SessionType.AM, row.FriAM),
-        BuildSessionAttendance(DayOfWeek.Friday, SessionType.PM, row.FriPM),
-        BuildSessionAttendance(DayOfWeek.Saturday, SessionType.AM, row.SatAM),
-        BuildSessionAttendance(DayOfWeek.Saturday, SessionType.PM, row.SatPM)
-      ]
+        BuildSessionAttendance(DayOfWeek.Friday, SessionType.PM, row.FriPM)
+      };
+      var presentSessions = attendances.Count(a => a.Category is AttendanceCategory.Present or AttendanceCategory.ApprovedEducationalActivity);
+      var absentSessions = attendances.Count(a => a.Category is AttendanceCategory.AuthorisedAbsence or AttendanceCategory.UnauthorisedAbsence);
+      var totalSessions = presentSessions + absentSessions;
+      var percentage = totalSessions > 0 ? Math.Round((decimal)presentSessions / totalSessions * 100, 2) : 0m;
+      return new StudentWeeklyAttendance
+      {
+        StudentId = row.StudentId,
+        Attendances = attendances,
+        Percentage = percentage
+      };
     }).OrderBy(x => x.StudentId).ToList();
   }
 
-  private static SessionAttendance BuildSessionAttendance(DayOfWeek dayOfWeek, SessionType session, string? value) => new()
+  private static SessionAttendance BuildSessionAttendance(DayOfWeek dayOfWeek, SessionType session, string? value)
   {
-    DayOfWeek = dayOfWeek,
-    Session = session,
-    IsPresent = ParseAttendanceMark(value)
-  };
-
-  private static bool? ParseAttendanceMark(string? value) => string.IsNullOrEmpty(value) || value[0] == '?' ? null : value[0] is '/' or '\\';
+    var code = string.IsNullOrWhiteSpace(value) ? null : value;
+    var category = code is null
+      ? AttendanceCategory.NotEntered
+      : (code[0] switch
+      {
+        '/' or '\\' or 'L' => AttendanceCategory.Present,
+        'B' or 'K' or 'P' or 'V' or 'W' => AttendanceCategory.ApprovedEducationalActivity,
+        'C' or 'E' or 'I' or 'J' or 'M' or 'R' or 'S' or 'T' => AttendanceCategory.AuthorisedAbsence,
+        'G' or 'N' or 'O' or 'U' => AttendanceCategory.UnauthorisedAbsence,
+        'D' or 'Q' or 'X' or 'Y' or 'Z' or '#' => AttendanceCategory.NotPossibleAttendance,
+        _ => AttendanceCategory.Invalid
+      });
+    return new()
+    {
+      DayOfWeek = dayOfWeek,
+      Session = session,
+      Code = code,
+      Category = category
+    };
+  }
 
   private static List<ParentContact> BuildParentContacts(StudentFlatViewContract student)
   {
