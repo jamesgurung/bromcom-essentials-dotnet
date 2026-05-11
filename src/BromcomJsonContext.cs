@@ -13,6 +13,7 @@ namespace BromcomEssentials;
 [JsonSerializable(typeof(ApiResponse<SubjectContract>))]
 [JsonSerializable(typeof(ApiResponse<AssessmentResultContract>))]
 [JsonSerializable(typeof(ApiResponse<StudentAttendanceByWeekContract>))]
+[JsonSerializable(typeof(ApiResponse<BasicAttendanceContract>))]
 internal sealed partial class BromcomJsonContext : JsonSerializerContext
 {
 }

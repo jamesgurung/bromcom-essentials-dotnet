@@ -17,10 +17,12 @@ var students = await client.GetStudentsAsync(schoolId, includeClasses: true, inc
 var staff = await client.GetStaffAsync(schoolId, includeClassesAndTimetable: true);
 var departments = await client.GetDepartmentsAsync(schoolId);
 var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearGroup: 7, gradesOnly: true);
-var attendances = await client.GetAttendancesByWeekAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
+var attendancesByWeek = await client.GetAttendancesByWeekAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
+var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
 
 Console.WriteLine($"Students: {students.Count}");
 Console.WriteLine($"Staff: {staff.Count}");
 Console.WriteLine($"Departments: {departments.Count}");
 Console.WriteLine($"Results: {results.Count}");
-Console.WriteLine($"Attendances: {attendances.Count}");
+Console.WriteLine($"Attendances by week: {attendancesByWeek.Count}");
+Console.WriteLine($"Period attendances: {periodAttendances.Count}");

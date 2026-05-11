@@ -157,3 +157,10 @@ internal sealed class StudentAttendanceByWeekContract
   public string? FriAM { get; set; }
   public string? FriPM { get; set; }
 }
+
+internal sealed class BasicAttendanceContract
+{
+  public int StudentId { get; set; }
+  public string? Mark { get; set; }
+  public string? PeriodDisplayName { get; set; }
+}

@@ -56,6 +56,15 @@ public sealed class StudentWeeklyAttendance
   public decimal Percentage { get; init; }
 }
 
+public sealed class PeriodAttendance
+{
+  public int StudentId { get; init; }
+  public DateOnly Date { get; init; }
+  public required string PeriodName { get; init; }
+  public string? Code { get; init; }
+  public AttendanceCategory Category { get; init; }
+}
+
 public sealed class SessionAttendance
 {
   public DayOfWeek DayOfWeek { get; init; }

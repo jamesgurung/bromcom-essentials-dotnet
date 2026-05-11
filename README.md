@@ -15,6 +15,7 @@ var staff = await client.GetStaffAsync(schoolId, includeClassesAndTimetable: tru
 var departments = await client.GetDepartmentsAsync(schoolId);
 var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearGroup: 7, gradesOnly: true);
 var attendances = await client.GetAttendancesByWeekAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
+var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
 ```
 
 ## Data model
@@ -80,6 +81,18 @@ Returns weekly AM/PM attendance marks for the week containing the requested date
 | `StudentId` | `int` |
 | `Attendances` | `IReadOnlyList<SessionAttendance>` |
 | `Percentage` | `decimal` |
+
+### `PeriodAttendance`
+
+Returns period attendance marks for the requested date. Set `periodName` to add the corresponding upstream entity filter.
+
+| Property | Type |
+| --- | --- |
+| `StudentId` | `int` |
+| `Date` | `DateOnly` |
+| `PeriodName` | `string` |
+| `Code` | `string?` |
+| `Category` | `AttendanceCategory` |
 
 #### `SessionAttendance`
 
@@ -158,6 +171,7 @@ Returns assessment results entered during the academic year that starts on 1 Sep
 ## Upstream API endpoints
 
 * `/v2/AssociationAssessmentResultsRaw`
+* `/v2/BasicAttendance`
 * `/v2/Departments`
 * `/v2/DepartmentTeachers`
 * `/v2/Staff`

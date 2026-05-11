@@ -209,28 +209,57 @@ public class BromcomClient : IDisposable
     }).OrderBy(x => x.StudentId).ToList();
   }
 
+  public async Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(int schoolId, DateOnly date, string? periodName = null,
+    CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    var entityFilter = BuildBasicAttendanceEntityFilter(date, periodName);
+    var attendances = await GetAsync<BasicAttendanceContract>("/v2/BasicAttendance", schoolId, entityFilter, null, cancellationToken);
+
+    return attendances.Select(row => new
+    {
+      row.StudentId,
+      PeriodName = CleanString(row.PeriodDisplayName),
+      Code = CleanString(row.Mark)
+    })
+      .Where(row => row.PeriodName is not null)
+      .Select(row => new PeriodAttendance
+      {
+        StudentId = row.StudentId,
+        Date = date,
+        PeriodName = row.PeriodName!,
+        Code = row.Code,
+        Category = BuildAttendanceCategory(row.Code)
+      })
+      .OrderBy(x => x.StudentId)
+      .ThenBy(x => x.PeriodName)
+      .ToList();
+  }
+
   private static SessionAttendance BuildSessionAttendance(DayOfWeek dayOfWeek, SessionType session, string? value)
   {
     var code = string.IsNullOrWhiteSpace(value) ? null : value;
-    var category = code is null
-      ? AttendanceCategory.NotEntered
-      : (code[0] switch
-      {
-        '/' or '\\' or 'L' => AttendanceCategory.Present,
-        'B' or 'K' or 'P' or 'V' or 'W' => AttendanceCategory.ApprovedEducationalActivity,
-        'C' or 'E' or 'I' or 'J' or 'M' or 'R' or 'S' or 'T' => AttendanceCategory.AuthorisedAbsence,
-        'G' or 'N' or 'O' or 'U' => AttendanceCategory.UnauthorisedAbsence,
-        'D' or 'Q' or 'X' or 'Y' or 'Z' or '#' => AttendanceCategory.NotPossibleAttendance,
-        _ => AttendanceCategory.Invalid
-      });
     return new()
     {
       DayOfWeek = dayOfWeek,
       Session = session,
       Code = code,
-      Category = category
+      Category = BuildAttendanceCategory(code)
     };
   }
+
+  private static AttendanceCategory BuildAttendanceCategory(string? code) => code is null
+    ? AttendanceCategory.NotEntered
+    : (code[0] switch
+    {
+      '/' or '\\' or 'L' => AttendanceCategory.Present,
+      'B' or 'K' or 'P' or 'V' or 'W' => AttendanceCategory.ApprovedEducationalActivity,
+      'C' or 'E' or 'I' or 'J' or 'M' or 'R' or 'S' or 'T' => AttendanceCategory.AuthorisedAbsence,
+      'G' or 'N' or 'O' or 'U' => AttendanceCategory.UnauthorisedAbsence,
+      'D' or 'Q' or 'X' or 'Y' or 'Z' or '#' => AttendanceCategory.NotPossibleAttendance,
+      _ => AttendanceCategory.Invalid
+    });
 
   private static List<ParentContact> BuildParentContacts(StudentFlatViewContract student)
   {
@@ -333,6 +362,21 @@ public class BromcomClient : IDisposable
   {
     var today = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     return $"{dateFieldPrefix}startDate <='{today}' and ({dateFieldPrefix}endDate>='{today}' or isnull({dateFieldPrefix}endDate,'')='')";
+  }
+
+  private static string BuildBasicAttendanceEntityFilter(DateOnly date, string? periodName)
+  {
+    var start = date.ToDateTime(TimeOnly.MinValue);
+    var end = date.ToDateTime(new TimeOnly(23, 59, 59));
+    var filters = new List<string>
+    {
+      $"calendarStartDate>='{start:yyyy-MM-ddTHH:mm:ss}'",
+      $"calendarStartDate<='{end:yyyy-MM-ddTHH:mm:ss}'"
+    };
+
+    if (periodName is not null) filters.Add($"periodDisplayName='{EscapeEntityFilterValue(periodName)}'");
+
+    return string.Join(" and ", filters);
   }
 
   private static string BuildAssessmentResultsEntityFilter(int academicYearStart, string? term, int? yearGroup, bool gradesOnly)
