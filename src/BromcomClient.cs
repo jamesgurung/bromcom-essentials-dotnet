@@ -210,11 +210,11 @@ public class BromcomClient : IDisposable
   }
 
   public async Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null, string? periodName = null,
-    CancellationToken cancellationToken = default)
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
 
-    var entityFilter = BuildBasicAttendanceEntityFilter(startDate, endDate ?? startDate, periodName);
+    var entityFilter = BuildBasicAttendanceEntityFilter(startDate, endDate ?? startDate, periodName, studentIds);
     var attendances = await GetAsync<BasicAttendanceContract>("/v2/BasicAttendance", schoolId, entityFilter, null, cancellationToken);
 
     return attendances.Select(row => new
@@ -369,7 +369,7 @@ public class BromcomClient : IDisposable
     return $"{dateFieldPrefix}startDate <='{today}' and ({dateFieldPrefix}endDate>='{today}' or isnull({dateFieldPrefix}endDate,'')='')";
   }
 
-  private static string BuildBasicAttendanceEntityFilter(DateOnly startDate, DateOnly endDate, string? periodName)
+  private static string BuildBasicAttendanceEntityFilter(DateOnly startDate, DateOnly endDate, string? periodName, IList<int>? studentIds)
   {
     var start = startDate.ToDateTime(TimeOnly.MinValue);
     var end = endDate.ToDateTime(new TimeOnly(23, 59, 59));
@@ -380,6 +380,7 @@ public class BromcomClient : IDisposable
     };
 
     if (periodName is not null) filters.Add($"periodDisplayName='{EscapeEntityFilterValue(periodName)}'");
+    if (studentIds is { Count: > 0 }) filters.Add($"({string.Join(" or ", studentIds.Distinct().Select(id => $"studentID={id.ToString(CultureInfo.InvariantCulture)}"))})");
 
     return string.Join(" and ", filters);
   }
