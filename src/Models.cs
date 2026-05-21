@@ -62,6 +62,7 @@ public sealed class PeriodAttendance
   public DateOnly Date { get; init; }
   public required string PeriodName { get; init; }
   public string? Code { get; init; }
+  public string? Comment { get; init; }
   public AttendanceCategory Category { get; init; }
 }
 

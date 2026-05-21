@@ -209,30 +209,35 @@ public class BromcomClient : IDisposable
     }).OrderBy(x => x.StudentId).ToList();
   }
 
-  public async Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(int schoolId, DateOnly date, string? periodName = null,
+  public async Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null, string? periodName = null,
     CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
 
-    var entityFilter = BuildBasicAttendanceEntityFilter(date, periodName);
+    var entityFilter = BuildBasicAttendanceEntityFilter(startDate, endDate ?? startDate, periodName);
     var attendances = await GetAsync<BasicAttendanceContract>("/v2/BasicAttendance", schoolId, entityFilter, null, cancellationToken);
 
     return attendances.Select(row => new
     {
       row.StudentId,
+      Date = row.CalendarStartDate is null || row.CalendarStartDate.Length < 10
+        ? startDate : (DateOnly.TryParseExact(row.CalendarStartDate[..10], "yyyy-MM-dd", out var date) ? date : startDate),
       PeriodName = CleanString(row.PeriodDisplayName),
-      Code = CleanString(row.Mark)
+      Code = CleanString(row.Mark),
+      Comment = CleanString(row.AttendanceComment)
     })
       .Where(row => row.PeriodName is not null)
       .Select(row => new PeriodAttendance
       {
         StudentId = row.StudentId,
-        Date = date,
+        Date = row.Date,
         PeriodName = row.PeriodName!,
         Code = row.Code,
+        Comment = row.Comment,
         Category = BuildAttendanceCategory(row.Code)
       })
       .OrderBy(x => x.StudentId)
+      .ThenBy(x => x.Date)
       .ThenBy(x => x.PeriodName)
       .ToList();
   }
@@ -364,10 +369,10 @@ public class BromcomClient : IDisposable
     return $"{dateFieldPrefix}startDate <='{today}' and ({dateFieldPrefix}endDate>='{today}' or isnull({dateFieldPrefix}endDate,'')='')";
   }
 
-  private static string BuildBasicAttendanceEntityFilter(DateOnly date, string? periodName)
+  private static string BuildBasicAttendanceEntityFilter(DateOnly startDate, DateOnly endDate, string? periodName)
   {
-    var start = date.ToDateTime(TimeOnly.MinValue);
-    var end = date.ToDateTime(new TimeOnly(23, 59, 59));
+    var start = startDate.ToDateTime(TimeOnly.MinValue);
+    var end = endDate.ToDateTime(new TimeOnly(23, 59, 59));
     var filters = new List<string>
     {
       $"calendarStartDate>='{start:yyyy-MM-ddTHH:mm:ss}'",
