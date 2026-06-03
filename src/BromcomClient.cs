@@ -136,14 +136,18 @@ public class BromcomClient : IDisposable
     var departmentTeachers = await GetAsync<DepartmentTeacherContract>("/v2/DepartmentTeachers", schoolId, null, null, cancellationToken);
     var subjects = await GetAsync<SubjectContract>("/v2/Subjects", schoolId, null, null, cancellationToken);
 
-    var subjectCodesById = subjects.Where(s => !string.IsNullOrWhiteSpace(s.Abbreviation)).ToDictionary(s => s.SubjectId, s => CleanString(s.Abbreviation));
+    var subjectsById = subjects.ToDictionary(s => s.SubjectId);
     var teachersByDepartmentId = departmentTeachers.ToLookup(t => t.DepartmentId);
 
     return departmentSubjects.GroupBy(row => row.DepartmentId).Select(g => new Department
     {
       Id = g.Key,
       Name = CleanString(g.First()?.CollectionName),
-      SubjectCodes = g.Where(r => subjectCodesById.ContainsKey(r.SubjectId)).Select(r => subjectCodesById[r.SubjectId]!).Distinct(StringComparer.OrdinalIgnoreCase).ToList(),
+      Subjects = g.Where(r => subjectsById.ContainsKey(r.SubjectId)).DistinctBy(r => r.SubjectId).Select(r =>
+      {
+        var subject = subjectsById[r.SubjectId];
+        return new Subject { Id = subject.SubjectId, Name = CleanString(subject.SubjectName), Code = CleanString(subject.Abbreviation) };
+      }).ToList(),
       HeadOfDepartmentId = teachersByDepartmentId[g.Key]
         .FirstOrDefault(t => string.Equals(CleanString(t.CollectionRoleTypeDescription), "Head of Department", StringComparison.OrdinalIgnoreCase))?.PersonId,
       LeaderIds = teachersByDepartmentId[g.Key]
