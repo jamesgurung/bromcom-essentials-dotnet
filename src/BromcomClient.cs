@@ -1,9 +1,10 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace BromcomEssentials;
 
-public class BromcomClient : IDisposable
+public partial class BromcomClient : IDisposable
 {
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
   {
@@ -43,7 +44,7 @@ public class BromcomClient : IDisposable
       var classes = await GetAsync<YearGroupSubjectStudentContract>("/v2/YearGroupSubjectStudents", schoolId, null, null, cancellationToken);
       classesByStudentId = classes.Where(x => !string.IsNullOrWhiteSpace(x.ClassName)).GroupBy(x => x.StudentId).ToDictionary(
         g => g.Key,
-        g => g.Select(x => new StudentClass { Name = CleanString(x.ClassName)!, Subject = CleanString(x.SubjectDescription) })
+        g => g.Select(x => new StudentClass { Name = CleanClassName(x.ClassName)!, Subject = CleanString(x.SubjectDescription) })
           .DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList());
     }
 
@@ -56,7 +57,7 @@ public class BromcomClient : IDisposable
         .ToDictionary(
           g => g.Key,
           g => g.OrderBy(x => x.PeriodStartDate).GroupBy(x => x.WeekDayPeriod, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
-            .Select(x => new StudentTimetableEntry { Period = x.WeekDayPeriod, Class = x.ClassName, Room = CleanRoom(x.LocationName), TeacherCode = x.StaffCode }).ToList());
+            .Select(x => new StudentTimetableEntry { Period = x.WeekDayPeriod, Class = CleanClassName(x.ClassName), Room = CleanRoom(x.LocationName), TeacherCode = x.StaffCode }).ToList());
     }
 
     return students.DistinctBy(row => row.StudentId).Select(row => new Student
@@ -104,14 +105,14 @@ public class BromcomClient : IDisposable
         .GroupBy(x => x.StaffId)
         .ToDictionary(
           g => g.Key,
-          g => g.Select(x => CleanString(x.ClassName)!).Distinct(StringComparer.OrdinalIgnoreCase).ToList());
+          g => g.Select(x => CleanClassName(x.ClassName)!).Distinct(StringComparer.OrdinalIgnoreCase).ToList());
       timetableByStaffId = timetableRows
         .Where(x => !string.IsNullOrWhiteSpace(x.WeekDayPeriod) && !string.IsNullOrWhiteSpace(x.TimetableEntry))
         .GroupBy(x => x.StaffId)
         .ToDictionary(
           g => g.Key,
           g => g.OrderBy(x => x.PeriodStartDate).GroupBy(x => x.WeekDayPeriod, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
-            .Select(x => new StaffTimetableEntry { Period = x.WeekDayPeriod, Class = CleanString(x.TimetableEntry), Room = CleanRoom(x.LocationName)}).ToList());
+            .Select(x => new StaffTimetableEntry { Period = x.WeekDayPeriod, Class = CleanClassName(x.TimetableEntry), Room = CleanRoom(x.LocationName)}).ToList());
     }
 
     return staff.Where(row => !string.IsNullOrWhiteSpace(row.StaffCode)).DistinctBy(row => row.StaffId).Select(row => new Staff
@@ -464,6 +465,16 @@ public class BromcomClient : IDisposable
 
     return string.Join(" ", new[] { title, firstInitial, surname }.Where(x => !string.IsNullOrWhiteSpace(x)));
   }
+
+  private static string? CleanClassName(string? value)
+  {
+    var cleaned = CleanString(value);
+    if (cleaned is null) return null;
+    return ClassNameYearSuffixRegex().Replace(cleaned, string.Empty);
+  }
+
+  [GeneratedRegex(@"\s+\(\d{2}/\d{2}\)$", RegexOptions.CultureInvariant)]
+  private static partial Regex ClassNameYearSuffixRegex();
 
   public void Dispose()
   {
