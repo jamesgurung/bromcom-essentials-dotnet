@@ -118,7 +118,14 @@ public sealed class Department
   public int? HeadOfDepartmentId { get; init; }
   public IReadOnlyList<int> LeaderIds { get; init; } = [];
   public IReadOnlyList<int> TeacherIds { get; init; } = [];
-  public IReadOnlyList<string> SubjectCodes { get; init; } = [];
+  public IReadOnlyList<Subject> Subjects { get; init; } = [];
+}
+
+public sealed class Subject
+{
+  public int Id { get; init; }
+  public string? Name { get; init; }
+  public string? Code { get; init; }
 }
 
 public sealed class AssessmentResult

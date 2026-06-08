@@ -128,6 +128,7 @@ internal sealed class DepartmentTeacherContract
 internal sealed class SubjectContract
 {
   public int SubjectId { get; set; }
+  public string? SubjectName { get; set; }
   public string? Abbreviation { get; set; }
 }
 
