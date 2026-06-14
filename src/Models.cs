@@ -1,4 +1,4 @@
-﻿namespace BromcomEssentials;
+namespace BromcomEssentials;
 
 public sealed class Student
 {
@@ -109,6 +109,17 @@ public sealed class StaffTimetableEntry
   public string? Period { get; init; }
   public string? Class { get; init; }
   public string? Room { get; init; }
+}
+
+public sealed class StaffAbsence
+{
+  public int Id { get; init; }
+  public int EmployeeId { get; init; }
+  public string? Type { get; init; }
+  public string? Notes { get; init; }
+  public decimal Duration { get; init; }
+  public DateTime Start { get; init; }
+  public DateTime? End { get; init; }
 }
 
 public sealed class Department

@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 
 namespace BromcomEssentials;
 
@@ -67,6 +67,17 @@ internal sealed class StaffContract
   public string? WorkEmail { get; set; }
   public string? StaffCode { get; set; }
   public string? JobTitle { get; set; }
+}
+
+internal sealed class StaffAbsenceContract
+{
+  public int StaffAbsenceId { get; set; }
+  public int EmployeeId { get; set; }
+  public string? StaffAbsenceCodeDescription { get; set; }
+  public string? Notes { get; set; }
+  public decimal Duration { get; set; }
+  public string? StartDate { get; set; }
+  public string? EndDate { get; set; }
 }
 
 internal sealed class TimetableContract

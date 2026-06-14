@@ -7,6 +7,7 @@ namespace BromcomEssentials;
 [JsonSerializable(typeof(ApiResponse<StudentFlatViewContract>))]
 [JsonSerializable(typeof(ApiResponse<YearGroupSubjectStudentContract>))]
 [JsonSerializable(typeof(ApiResponse<StaffContract>))]
+[JsonSerializable(typeof(ApiResponse<StaffAbsenceContract>))]
 [JsonSerializable(typeof(ApiResponse<TimetableContract>))]
 [JsonSerializable(typeof(ApiResponse<DepartmentContract>))]
 [JsonSerializable(typeof(ApiResponse<DepartmentTeacherContract>))]

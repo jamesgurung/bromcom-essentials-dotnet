@@ -12,6 +12,7 @@ using BromcomEssentials;
 using var client = new BromcomClient(applicationId, applicationSecret);
 var students = await client.GetStudentsAsync(schoolId, includeClasses: true, includeTimetable: true);
 var staff = await client.GetStaffAsync(schoolId, includeClassesAndTimetable: true);
+var staffAbsences = await client.GetStaffAbsencesAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
 var departments = await client.GetDepartmentsAsync(schoolId);
 var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearGroup: 7, gradesOnly: true);
 var attendances = await client.GetAttendancesByWeekAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
@@ -94,6 +95,18 @@ var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.From
 | `Period` | `string?` |
 | `Class` | `string?` |
 | `Room` | `string?` |
+
+### `StaffAbsence`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `EmployeeId` | `int` |
+| `Type` | `string?` |
+| `Notes` | `string?` |
+| `Duration` | `decimal` |
+| `Start` | `DateTime` |
+| `End` | `DateTime?` |
 
 ### `Department`
 
@@ -185,6 +198,7 @@ Returns period attendance marks for the requested inclusive start/end date range
 * `/v2/Departments`
 * `/v2/DepartmentTeachers`
 * `/v2/Staff`
+* `/v2/StaffAbsences`
 * `/v2/StudentAttendanceByWeek`
 * `/v2/StudentFlatView`
 * `/v2/StudentTimetables`

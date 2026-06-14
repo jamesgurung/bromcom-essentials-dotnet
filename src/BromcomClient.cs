@@ -129,6 +129,34 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(s => s.Surname).ThenBy(s => s.Forename).ThenBy(s => s.StaffCode).ToList();
   }
 
+  public async Task<IReadOnlyList<StaffAbsence>> GetStaffAbsencesAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
+    CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    var start = startDate.ToDateTime(TimeOnly.MinValue);
+    var end = (endDate ?? startDate).ToDateTime(new TimeOnly(23, 59, 59));
+    var entityFilter = $"startDate<='{end:yyyy-MM-ddTHH:mm:ss}' and (endDate>='{start:yyyy-MM-ddTHH:mm:ss}' or isnull(endDate,'')='')";
+    var absences = await GetAsync<StaffAbsenceContract>("/v2/StaffAbsences", schoolId, entityFilter, null, cancellationToken);
+
+    return absences.Select(row => new
+    {
+      Row = row,
+      HasStartTime = DateTime.TryParse(row.StartDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out var startTime),
+      StartTime = startTime,
+      EndTime = DateTime.TryParse(row.EndDate, CultureInfo.InvariantCulture, DateTimeStyles.None, out var endTime) ? endTime : (DateTime?)null
+    }).Where(x => x.HasStartTime).Select(x => new StaffAbsence
+    {
+      Id = x.Row.StaffAbsenceId,
+      EmployeeId = x.Row.EmployeeId,
+      Type = CleanString(x.Row.StaffAbsenceCodeDescription),
+      Notes = CleanString(x.Row.Notes),
+      Duration = x.Row.Duration,
+      Start = x.StartTime,
+      End = x.EndTime
+    }).OrderBy(x => x.Start).ThenBy(x => x.EmployeeId).ThenBy(x => x.Id).ToList();
+  }
+
   public async Task<IReadOnlyList<Department>> GetDepartmentsAsync(int schoolId, CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
