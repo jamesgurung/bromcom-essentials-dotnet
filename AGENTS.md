@@ -29,7 +29,7 @@
   - LINQ-heavy query composition
   - expression-bodied members when they fit on one line
   - omitting braces for single-line blocks
-  - no nullable annotations (`string?`, null-forgiving `!`) as this C# feature is disabled
+  - correct nullable annotations in the BromcomEssentials project, but not in the Sample project
 - When writing JavaScript, prefer:
   - modern ES2025+ syntax
   - semicolons

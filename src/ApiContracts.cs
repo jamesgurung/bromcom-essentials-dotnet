@@ -80,6 +80,63 @@ internal sealed class StaffAbsenceContract
   public string? EndDate { get; set; }
 }
 
+internal sealed class StaffLineManagerContract
+{
+  public int EmployeeId { get; set; }
+  public int LineManagerEmployeeId { get; set; }
+}
+
+internal sealed class RoomCoverContract
+{
+  public int CoverId { get; set; }
+  public string? CoverDate { get; set; }
+  public string? PeriodName { get; set; }
+  public string? CoverReasonDescription { get; set; }
+  public string? CoveredActivity { get; set; }
+  public string? CoveredRoomName { get; set; }
+  public string? CoveringRoomName { get; set; }
+}
+
+internal sealed class StaffCoverContract
+{
+  public int CoverId { get; set; }
+  public string? CoverDate { get; set; }
+  public string? PeriodName { get; set; }
+  public string? CoverReasonDescription { get; set; }
+  public string? CoveredActivity { get; set; }
+  public int CoveredEmployeeId { get; set; }
+  public int? CoveringEmployeeId { get; set; }
+  public string? StaffAbsenceType { get; set; }
+  public string? CoverStatus { get; set; }
+}
+
+internal sealed class ParentalConsentContract
+{
+  public int StudentId { get; set; }
+  public string? ParentalConsentTypeName { get; set; }
+}
+
+internal sealed class BehaviourTypeContract
+{
+  public int EventId { get; set; }
+  public string? EventName { get; set; }
+  public string? EventDescription { get; set; }
+}
+
+internal sealed class BehaviourEventContract
+{
+  public int EventRecordId { get; set; }
+  public int StudentId { get; set; }
+  public int EventId { get; set; }
+  public int OwnerId { get; set; }
+  public int? ClassId { get; set; }
+  public int? LocationId { get; set; }
+  public string? EventDate { get; set; }
+  public int Adjustment { get; set; }
+  public string? Comment { get; set; }
+  public string? InternalComment { get; set; }
+}
+
 internal sealed class TimetableContract
 {
   public int StaffId { get; set; }

@@ -94,6 +94,8 @@ public partial class BromcomClient : IDisposable
     ObjectDisposedException.ThrowIf(_disposed, this);
 
     var staff = await GetAsync<StaffContract>("/v2/Staff", schoolId, null, null, cancellationToken);
+    var lineManagers = await GetAsync<StaffLineManagerContract>("/v2/StaffLineManagers", schoolId, null, null, cancellationToken);
+    var lineManagerIdsByStaffId = lineManagers.GroupBy(row => row.EmployeeId).ToDictionary(g => g.Key, g => g.First().LineManagerEmployeeId);
     var classesByStaffId = new Dictionary<int, List<string>>();
     var timetableByStaffId = new Dictionary<int, List<StaffTimetableEntry>>();
 
@@ -124,6 +126,7 @@ public partial class BromcomClient : IDisposable
       Email = CleanString(row.WorkEmail)?.ToLowerInvariant(),
       StaffCode = CleanString(row.StaffCode),
       JobTitle = CleanString(row.JobTitle),
+      LineManagerId = lineManagerIdsByStaffId.TryGetValue(row.StaffId, out var lineManagerId) ? lineManagerId : null,
       Timetable = timetableByStaffId.TryGetValue(row.StaffId, out var timetable) ? timetable : [],
       Classes = classesByStaffId.TryGetValue(row.StaffId, out var classes) ? classes : []
     }).OrderBy(s => s.Surname).ThenBy(s => s.Forename).ThenBy(s => s.StaffCode).ToList();
@@ -155,6 +158,103 @@ public partial class BromcomClient : IDisposable
       Start = x.StartTime,
       End = x.EndTime
     }).OrderBy(x => x.Start).ThenBy(x => x.EmployeeId).ThenBy(x => x.Id).ToList();
+  }
+
+  public async Task<IReadOnlyList<RoomCover>> GetRoomCoversAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
+    CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    var entityFilter = BuildDateRangeEntityFilter("coverDate", startDate, endDate ?? startDate);
+    var covers = await GetAsync<RoomCoverContract>("/v2/RoomCovers", schoolId, entityFilter, null, cancellationToken);
+
+    return covers.Select(row => new { Row = row, Date = ParseDateOnly(row.CoverDate) }).Where(x => x.Date is not null).Select(x => new RoomCover
+    {
+      Id = x.Row.CoverId,
+      Date = x.Date.GetValueOrDefault(),
+      PeriodId = CleanString(x.Row.PeriodName),
+      Reason = CleanString(x.Row.CoverReasonDescription),
+      ClassName = CleanClassName(x.Row.CoveredActivity),
+      CoveredRoom = CleanRoom(x.Row.CoveredRoomName),
+      CoveringRoom = CleanRoom(x.Row.CoveringRoomName)
+    }).OrderBy(x => x.Date).ThenBy(x => x.PeriodId).ThenBy(x => x.Id).ToList();
+  }
+
+  public async Task<IReadOnlyList<StaffCover>> GetStaffCoversAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
+    CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    var entityFilter = BuildDateRangeEntityFilter("coverDate", startDate, endDate ?? startDate);
+    var covers = await GetAsync<StaffCoverContract>("/v2/StaffCovers", schoolId, entityFilter, null, cancellationToken);
+
+    return covers.Select(row => new { Row = row, Date = ParseDateOnly(row.CoverDate) }).Where(x => x.Date is not null).Select(x => new StaffCover
+    {
+      Id = x.Row.CoverId,
+      Date = x.Date.GetValueOrDefault(),
+      PeriodId = CleanString(x.Row.PeriodName),
+      Reason = CleanString(x.Row.CoverReasonDescription),
+      ClassName = CleanClassName(x.Row.CoveredActivity),
+      CoveredStaffId = x.Row.CoveredEmployeeId,
+      CoveringStaffId = x.Row.CoveringEmployeeId,
+      AbsenceType = CleanString(x.Row.StaffAbsenceType),
+      CoverStatus = CleanString(x.Row.CoverStatus)
+    }).OrderBy(x => x.Date).ThenBy(x => x.PeriodId).ThenBy(x => x.Id).ToList();
+  }
+
+  public async Task<IReadOnlyList<ParentalConsent>> GetParentalConsentAsync(int schoolId, string? consentType = null,
+    CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    var filters = new List<string> { "latestConsentStatus='Granted'" };
+    if (consentType is not null) filters.Add($"parentalConsentTypeName='{EscapeEntityFilterValue(consentType)}'");
+    var consents = await GetAsync<ParentalConsentContract>("/v2/StudentParentalConsent", schoolId, string.Join(" and ", filters), null, cancellationToken);
+
+    return consents.Select(row => new ParentalConsent
+    {
+      StudentId = row.StudentId,
+      ConsentType = CleanString(row.ParentalConsentTypeName)
+    }).OrderBy(x => x.StudentId).ThenBy(x => x.ConsentType).ToList();
+  }
+
+  public async Task<IReadOnlyList<BehaviourType>> GetBehaviourTypesAsync(int schoolId, CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    var today = DateTime.Today;
+    var entityFilter = $"startDate<='{today:yyyy-MM-ddTHH:mm:ss}' and (endDate>='{today:yyyy-MM-ddTHH:mm:ss}' or isnull(endDate,'')='')";
+    var types = await GetAsync<BehaviourTypeContract>("/v2/BehaviourEvents", schoolId, entityFilter, null, cancellationToken);
+
+    return types.Select(row => new BehaviourType
+    {
+      Id = row.EventId,
+      Code = CleanString(row.EventName),
+      Name = CleanString(row.EventDescription)
+    }).OrderBy(x => x.Name).ThenBy(x => x.Code).ThenBy(x => x.Id).ToList();
+  }
+
+  public async Task<IReadOnlyList<BehaviourEvent>> GetBehaviourEventsAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
+    CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    var entityFilter = BuildDateRangeEntityFilter("eventDate", startDate, endDate ?? startDate);
+    var events = await GetAsync<BehaviourEventContract>("/v2/BehaviourEventRecords", schoolId, entityFilter, null, cancellationToken);
+
+    return events.Select(row => new { Row = row, Date = ParseDateOnly(row.EventDate) }).Where(x => x.Date is not null).Select(x => new BehaviourEvent
+    {
+      Id = x.Row.EventRecordId,
+      StudentId = x.Row.StudentId,
+      EventTypeId = x.Row.EventId,
+      StaffId = x.Row.OwnerId,
+      ClassId = x.Row.ClassId,
+      LocationId = x.Row.LocationId,
+      Date = x.Date.GetValueOrDefault(),
+      Points = x.Row.Adjustment,
+      Comment = CleanString(x.Row.Comment),
+      InternalComment = CleanString(x.Row.InternalComment)
+    }).OrderBy(x => x.Date).ThenBy(x => x.StudentId).ThenBy(x => x.Id).ToList();
   }
 
   public async Task<IReadOnlyList<Department>> GetDepartmentsAsync(int schoolId, CancellationToken cancellationToken = default)
@@ -418,6 +518,13 @@ public partial class BromcomClient : IDisposable
     return string.Join(" and ", filters);
   }
 
+  private static string BuildDateRangeEntityFilter(string fieldName, DateOnly startDate, DateOnly endDate)
+  {
+    var start = startDate.ToDateTime(TimeOnly.MinValue);
+    var end = endDate.ToDateTime(new TimeOnly(23, 59, 59));
+    return $"{fieldName}>='{start:yyyy-MM-ddTHH:mm:ss}' and {fieldName}<='{end:yyyy-MM-ddTHH:mm:ss}'";
+  }
+
   private static string BuildAssessmentResultsEntityFilter(int academicYearStart, string? term, int? yearGroup, bool gradesOnly)
   {
     var start = new DateOnly(academicYearStart, 9, 1);
@@ -438,6 +545,9 @@ public partial class BromcomClient : IDisposable
   private static string EscapeEntityFilterValue(string value) => value.Replace("'", "''", StringComparison.Ordinal);
 
   private static string? CleanString(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+  private static DateOnly? ParseDateOnly(string? value) => value is null || value.Length < 10
+    ? null : (DateOnly.TryParseExact(value[..10], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date : null);
 
   private static bool ParseBooleanFlag(string? value) => value?.Equals("yes", StringComparison.OrdinalIgnoreCase) ?? false;
 

@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, department, attendance, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, department, attendance, cover, consent, behaviour, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -13,6 +13,11 @@ using var client = new BromcomClient(applicationId, applicationSecret);
 var students = await client.GetStudentsAsync(schoolId, includeClasses: true, includeTimetable: true);
 var staff = await client.GetStaffAsync(schoolId, includeClassesAndTimetable: true);
 var staffAbsences = await client.GetStaffAbsencesAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
+var roomCovers = await client.GetRoomCoversAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
+var staffCovers = await client.GetStaffCoversAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
+var parentalConsents = await client.GetParentalConsentAsync(schoolId, consentType: "U");
+var behaviourTypes = await client.GetBehaviourTypesAsync(schoolId);
+var behaviourEvents = await client.GetBehaviourEventsAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
 var departments = await client.GetDepartmentsAsync(schoolId);
 var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearGroup: 7, gradesOnly: true);
 var attendances = await client.GetAttendancesByWeekAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
@@ -85,6 +90,7 @@ var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.From
 | `Email` | `string?` |
 | `StaffCode` | `string?` |
 | `JobTitle` | `string?` |
+| `LineManagerId` | `int?` |
 | `Classes` | `IReadOnlyList<string>` |
 | `Timetable` | `IReadOnlyList<StaffTimetableEntry>` |
 
@@ -108,6 +114,62 @@ var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.From
 | `Start` | `DateTime` |
 | `End` | `DateTime?` |
 
+### `RoomCover`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `Date` | `DateOnly` |
+| `PeriodId` | `string?` |
+| `Reason` | `string?` |
+| `ClassName` | `string?` |
+| `CoveredRoom` | `string?` |
+| `CoveringRoom` | `string?` |
+
+### `StaffCover`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `Date` | `DateOnly` |
+| `PeriodId` | `string?` |
+| `Reason` | `string?` |
+| `ClassName` | `string?` |
+| `CoveredStaffId` | `int` |
+| `CoveringStaffId` | `int?` |
+| `AbsenceType` | `string?` |
+| `CoverStatus` | `string?` |
+
+### `ParentalConsent`
+
+| Property | Type |
+| --- | --- |
+| `StudentId` | `int` |
+| `ConsentType` | `string?` |
+
+### `BehaviourType`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `Code` | `string?` |
+| `Name` | `string?` |
+
+### `BehaviourEvent`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `StudentId` | `int` |
+| `EventTypeId` | `int` |
+| `StaffId` | `int` |
+| `ClassId` | `int?` |
+| `LocationId` | `int?` |
+| `Date` | `DateOnly` |
+| `Points` | `int` |
+| `Comment` | `string?` |
+| `InternalComment` | `string?` |
+
 ### `Department`
 
 | Property | Type |
@@ -129,8 +191,6 @@ var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.From
 
 ### `AssessmentResult`
 
-Returns assessment results entered during the academic year that starts on 1 September of `academicYearStart` and ends on 31 August of the following year. Set `term`, `yearGroup`, and `gradesOnly` to add the corresponding upstream entity filters.
-
 | Property | Type |
 | --- | --- |
 | `StudentId` | `int` |
@@ -142,8 +202,6 @@ Returns assessment results entered during the academic year that starts on 1 Sep
 
 ### `StudentWeeklyAttendance`
 
-Returns weekly AM/PM attendance marks for the week containing the requested date.
-
 | Property | Type |
 | --- | --- |
 | `StudentId` | `int` |
@@ -151,8 +209,6 @@ Returns weekly AM/PM attendance marks for the week containing the requested date
 | `Percentage` | `decimal` |
 
 ### `PeriodAttendance`
-
-Returns period attendance marks for the requested inclusive start/end date range. If `endDate` is omitted or null, it defaults to `startDate`. Set `periodName` or `studentIds` to add the corresponding upstream entity filters.
 
 | Property | Type |
 | --- | --- |
@@ -195,12 +251,18 @@ Returns period attendance marks for the requested inclusive start/end date range
 
 * `/v2/AssociationAssessmentResultsRaw`
 * `/v2/BasicAttendance`
+* `/v2/BehaviourEventRecords`
+* `/v2/BehaviourEvents`
 * `/v2/Departments`
 * `/v2/DepartmentTeachers`
+* `/v2/RoomCovers`
 * `/v2/Staff`
 * `/v2/StaffAbsences`
+* `/v2/StaffCovers`
+* `/v2/StaffLineManagers`
 * `/v2/StudentAttendanceByWeek`
 * `/v2/StudentFlatView`
+* `/v2/StudentParentalConsent`
 * `/v2/StudentTimetables`
 * `/v2/Subjects`
 * `/v2/Timetable`
