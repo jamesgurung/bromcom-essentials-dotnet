@@ -185,7 +185,7 @@ public sealed class BehaviourEvent
   public int StaffId { get; init; }
   public int? ClassId { get; init; }
   public int? LocationId { get; init; }
-  public DateOnly Date { get; init; }
+  public DateTime Date { get; init; }
   public int Points { get; init; }
   public string? Comment { get; init; }
   public string? InternalComment { get; init; }

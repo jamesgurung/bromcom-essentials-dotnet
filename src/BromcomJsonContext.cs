@@ -14,6 +14,7 @@ namespace BromcomEssentials;
 [JsonSerializable(typeof(ApiResponse<ParentalConsentContract>))]
 [JsonSerializable(typeof(ApiResponse<BehaviourTypeContract>))]
 [JsonSerializable(typeof(ApiResponse<BehaviourEventContract>))]
+[JsonSerializable(typeof(BehaviourEventPostContract))]
 [JsonSerializable(typeof(ApiResponse<TimetableContract>))]
 [JsonSerializable(typeof(ApiResponse<DepartmentContract>))]
 [JsonSerializable(typeof(ApiResponse<DepartmentTeacherContract>))]

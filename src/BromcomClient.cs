@@ -242,7 +242,7 @@ public partial class BromcomClient : IDisposable
     var entityFilter = BuildDateRangeEntityFilter("eventDate", startDate, endDate ?? startDate);
     var events = await GetAsync<BehaviourEventContract>("/v2/BehaviourEventRecords", schoolId, entityFilter, null, cancellationToken);
 
-    return events.Select(row => new { Row = row, Date = ParseDateOnly(row.EventDate) }).Where(x => x.Date is not null).Select(x => new BehaviourEvent
+    return events.Select(row => new { Row = row, DateTime = ParseDateTime(row.EventDate) }).Where(x => x.DateTime is not null).Select(x => new BehaviourEvent
     {
       Id = x.Row.EventRecordId,
       StudentId = x.Row.StudentId,
@@ -250,11 +250,46 @@ public partial class BromcomClient : IDisposable
       StaffId = x.Row.OwnerId,
       ClassId = x.Row.ClassId,
       LocationId = x.Row.LocationId,
-      Date = x.Date.GetValueOrDefault(),
+      Date = x.DateTime.GetValueOrDefault(),
       Points = x.Row.Adjustment,
       Comment = CleanString(x.Row.Comment),
       InternalComment = CleanString(x.Row.InternalComment)
     }).OrderBy(x => x.Date).ThenBy(x => x.StudentId).ThenBy(x => x.Id).ToList();
+  }
+
+  public async Task SetBehaviourEventAsync(int schoolId, BehaviourEvent ev, CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+    ArgumentNullException.ThrowIfNull(ev);
+
+    var eventDate = ev.Date == default ? DateTime.UtcNow : ev.Date;
+    if (eventDate.Kind == DateTimeKind.Local) eventDate = eventDate.ToUniversalTime();
+    if (eventDate.Kind == DateTimeKind.Unspecified) eventDate = DateTime.SpecifyKind(eventDate, DateTimeKind.Utc);
+
+    var payload = new BehaviourEventPostContract
+    {
+      SchoolId = schoolId,
+      StudentId = ev.StudentId,
+      EventRecordId = ev.Id,
+      EventId = ev.EventTypeId,
+      OwnerId = ev.StaffId,
+      ClassId = ev.ClassId ?? 0,
+      LocationId = ev.LocationId ?? 0,
+      EventDate = eventDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture),
+      Adjustment = ev.Points,
+      Comment = ev.Comment,
+      InternalComment = ev.InternalComment
+    };
+
+    using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.bromcomcloud.com/v2/BehaviourEventRecords");
+    request.Headers.Add("ApplicationId", _applicationId);
+    request.Headers.Add("ApplicationSecret", _applicationSecret);
+    request.Headers.Add("Accept", "application/json");
+    request.Content = JsonContent.Create(payload, options: _jsonOptions);
+
+    using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+    if (!response.IsSuccessStatusCode)
+      throw new HttpRequestException($"Request to '/v2/BehaviourEventRecords' failed with status {(int)response.StatusCode} ({response.StatusCode}).");
   }
 
   public async Task<IReadOnlyList<Department>> GetDepartmentsAsync(int schoolId, CancellationToken cancellationToken = default)
@@ -548,6 +583,9 @@ public partial class BromcomClient : IDisposable
 
   private static DateOnly? ParseDateOnly(string? value) => value is null || value.Length < 10
     ? null : (DateOnly.TryParseExact(value[..10], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date) ? date : null);
+
+  private static DateTime? ParseDateTime(string? value) => value is null || value.Length < 19
+    ? null : (DateTime.TryParseExact(value[..19], "yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var date) ? date : null);
 
   private static bool ParseBooleanFlag(string? value) => value?.Equals("yes", StringComparison.OrdinalIgnoreCase) ?? false;
 

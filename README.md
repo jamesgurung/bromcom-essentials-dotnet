@@ -165,7 +165,7 @@ var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.From
 | `StaffId` | `int` |
 | `ClassId` | `int?` |
 | `LocationId` | `int?` |
-| `Date` | `DateOnly` |
+| `Date` | `DateTime` |
 | `Points` | `int` |
 | `Comment` | `string?` |
 | `InternalComment` | `string?` |
