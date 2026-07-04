@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace BromcomEssentials;
 
+/// <summary>Client for retrieving basic data from the Bromcom Partner API.</summary>
 public partial class BromcomClient : IDisposable
 {
   private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
@@ -18,6 +19,11 @@ public partial class BromcomClient : IDisposable
   private readonly string _applicationSecret;
   private bool _disposed;
 
+  /// <summary>Initialises a new instance of the <see cref="BromcomClient"/> class.</summary>
+  /// <param name="applicationId">The Bromcom Partner API application ID.</param>
+  /// <param name="applicationSecret">The Bromcom Partner API application secret.</param>
+  /// <param name="httpClient">Optional HTTP client to use for requests. When omitted, the client creates and owns one.</param>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="applicationId"/> or <paramref name="applicationSecret"/> is blank.</exception>
   public BromcomClient(string applicationId, string applicationSecret, HttpClient? httpClient = null)
   {
     _ownsHttpClient = httpClient is null;
@@ -30,6 +36,15 @@ public partial class BromcomClient : IDisposable
       : applicationSecret;
   }
 
+  /// <summary>Gets students for a school, with optional class and timetable data.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="includeClasses">Whether to include class memberships for each student.</param>
+  /// <param name="includeTimetable">Whether to include timetable entries for each student.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of students ordered by surname, forename, year group, and tutor group.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<Student>> GetStudentsAsync(int schoolId, bool includeClasses = false, bool includeTimetable = false,
     CancellationToken cancellationToken = default)
   {
@@ -89,6 +104,14 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(s => s.Surname).ThenBy(s => s.Forename).ThenBy(s => s.YearGroup).ThenBy(s => s.TutorGroup).ToList();
   }
 
+  /// <summary>Gets staff for a school, with optional class and timetable data.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="includeClassesAndTimetable">Whether to include class names and timetable entries for each staff member.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of staff ordered by surname, forename, and staff code.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<Staff>> GetStaffAsync(int schoolId, bool includeClassesAndTimetable = false, CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
@@ -132,6 +155,15 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(s => s.Surname).ThenBy(s => s.Forename).ThenBy(s => s.StaffCode).ToList();
   }
 
+  /// <summary>Gets staff absences that overlap a date range.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="startDate">The first date in the range.</param>
+  /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of staff absences ordered by start date, employee identifier, and absence identifier.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<StaffAbsence>> GetStaffAbsencesAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
     CancellationToken cancellationToken = default)
   {
@@ -160,6 +192,15 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(x => x.Start).ThenBy(x => x.EmployeeId).ThenBy(x => x.Id).ToList();
   }
 
+  /// <summary>Gets room cover arrangements for a date range.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="startDate">The first date in the range.</param>
+  /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of room cover arrangements ordered by date, period, and cover identifier.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<RoomCover>> GetRoomCoversAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
     CancellationToken cancellationToken = default)
   {
@@ -180,6 +221,15 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(x => x.Date).ThenBy(x => x.PeriodId).ThenBy(x => x.Id).ToList();
   }
 
+  /// <summary>Gets staff cover arrangements for a date range.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="startDate">The first date in the range.</param>
+  /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of staff cover arrangements ordered by date, period, and cover identifier.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<StaffCover>> GetStaffCoversAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
     CancellationToken cancellationToken = default)
   {
@@ -202,6 +252,14 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(x => x.Date).ThenBy(x => x.PeriodId).ThenBy(x => x.Id).ToList();
   }
 
+  /// <summary>Gets granted parental consent records for students.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="consentType">Optional parental consent type to filter by.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of granted parental consent records ordered by student identifier and consent type.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<ParentalConsent>> GetParentalConsentAsync(int schoolId, string? consentType = null,
     CancellationToken cancellationToken = default)
   {
@@ -218,6 +276,13 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(x => x.StudentId).ThenBy(x => x.ConsentType).ToList();
   }
 
+  /// <summary>Gets active behaviour event types.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of behaviour event types ordered by name, code, and identifier.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<BehaviourType>> GetBehaviourTypesAsync(int schoolId, CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
@@ -234,6 +299,15 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(x => x.Name).ThenBy(x => x.Code).ThenBy(x => x.Id).ToList();
   }
 
+  /// <summary>Gets behaviour event records for a date range.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="startDate">The first date in the range.</param>
+  /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of behaviour event records ordered by date, student identifier, and event identifier.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<BehaviourEvent>> GetBehaviourEventsAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
     CancellationToken cancellationToken = default)
   {
@@ -257,6 +331,14 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(x => x.Date).ThenBy(x => x.StudentId).ThenBy(x => x.Id).ToList();
   }
 
+  /// <summary>Creates or updates a behaviour event record.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="ev">The behaviour event to send to Bromcom.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A task that completes when the event has been accepted by the API.</returns>
+  /// <exception cref="ArgumentNullException">Thrown when <paramref name="ev"/> is <see langword="null"/>.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   public async Task SetBehaviourEventAsync(int schoolId, BehaviourEvent ev, CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
@@ -292,6 +374,13 @@ public partial class BromcomClient : IDisposable
       throw new HttpRequestException($"Request to '/v2/BehaviourEventRecords' failed with status {(int)response.StatusCode} ({response.StatusCode}).");
   }
 
+  /// <summary>Gets departments, subjects, and department staff membership.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of departments ordered by name.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<Department>> GetDepartmentsAsync(int schoolId, CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
@@ -321,6 +410,18 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(d => d.Name).ToList();
   }
 
+  /// <summary>Gets assessment results for an academic year, with optional term and year group filters.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="academicYearStart">The calendar year in which the academic year starts.</param>
+  /// <param name="term">Optional term name to filter by.</param>
+  /// <param name="yearGroup">Optional year group to filter by.</param>
+  /// <param name="gradesOnly">Whether to return only grade results.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of assessment results ordered by student, year group, term, subject, and result.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="academicYearStart"/> is less than 1900.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<AssessmentResult>> GetResultsAsync(int schoolId, int academicYearStart, string? term = null, int? yearGroup = null,
     bool gradesOnly = false,
     CancellationToken cancellationToken = default)
@@ -342,6 +443,14 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(r => r.StudentId).ThenBy(r => r.YearGroup).ThenBy(r => r.Term).ThenBy(r => r.Subject).ThenBy(r => r.Result).ToList();
   }
 
+  /// <summary>Gets morning and afternoon attendance marks for the week containing a date.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="date">A date in the attendance week to retrieve.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of weekly attendance records ordered by student identifier.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<StudentWeeklyAttendance>> GetAttendancesByWeekAsync(int schoolId, DateOnly date, CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
@@ -377,6 +486,17 @@ public partial class BromcomClient : IDisposable
     }).OrderBy(x => x.StudentId).ToList();
   }
 
+  /// <summary>Gets period attendance marks for a date range, with optional period and student filters.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="startDate">The first date in the range.</param>
+  /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
+  /// <param name="periodName">Optional period display name to filter by.</param>
+  /// <param name="studentIds">Optional student identifiers to filter by.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of period attendance marks ordered by student identifier, date, and period name.</returns>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null, string? periodName = null,
     IList<int>? studentIds = null, CancellationToken cancellationToken = default)
   {
@@ -657,6 +777,7 @@ public partial class BromcomClient : IDisposable
   [GeneratedRegex(@"\s+\(\d{2}/\d{2}\)$", RegexOptions.CultureInvariant)]
   private static partial Regex ClassNameYearSuffixRegex();
 
+  /// <summary>Releases the owned HTTP client, if this instance created one.</summary>
   public void Dispose()
   {
     if (_disposed) return;

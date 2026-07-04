@@ -10,6 +10,7 @@
     <Authors>James Gurung</Authors>
     <Description>Retrieve basic data from the Bromcom Partner API. Not affiliated with Bromcom.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>NETSDK1057</NoWarn>
   </PropertyGroup>
 
