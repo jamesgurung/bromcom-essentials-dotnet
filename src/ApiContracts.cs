@@ -154,17 +154,16 @@ internal sealed class TimetableContract
   public string? TimetableEntry { get; set; }
   public string? PeriodStartDate { get; set; }
 
-  private string? _weekDayPeriod;
   private bool _hasWeekDayPeriod;
   [JsonIgnore]
   public string? WeekDayPeriod
   {
     get
     {
-      if (_hasWeekDayPeriod) return _weekDayPeriod;
-      _weekDayPeriod = int.TryParse(WeekNumber, out var week) && int.TryParse(PeriodName, out var period) ? $"W{week:00}:D{TimetableDay:00}:{period:00}" : null;
+      if (_hasWeekDayPeriod) return field;
+      field = int.TryParse(WeekNumber, out var week) && int.TryParse(PeriodName, out var period) ? $"W{week:00}:D{TimetableDay:00}:{period:00}" : null;
       _hasWeekDayPeriod = true;
-      return _weekDayPeriod;
+      return field;
     }
   }
 

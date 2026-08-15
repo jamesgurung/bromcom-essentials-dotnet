@@ -7,14 +7,16 @@
 - Do not edit or reformat unrelated code. Keep edits local to the relevant files unless a wider change is required.
 - Avoid introducing new dependencies unless they are clearly necessary.
 - Reuse existing code and patterns in the codebase where possible.
-- To avoid interfering with active processes, run validation builds with a temporary artifacts directory outside the repo, then delete it afterwards. Example PowerShell flow: `$artifacts = Join-Path $env:TEMP ("dotnet-build-" + [guid]::NewGuid().ToString("N")); dotnet build --artifacts-path $artifacts; Remove-Item -LiteralPath $artifacts -Recurse -Force`
+- To avoid interfering with active processes, run validation builds in two separate shell calls using a unique literal path beneath the project's MSBuild-excluded and gitignored `artifacts` directory: first run `dotnet build --artifacts-path 'artifacts/dotnet-build-<unique-token>'` with a timeout of at least 120 seconds, then run `dotnet build --target:Clean --no-restore --artifacts-path '<same path>'` to remove the generated files. Let `dotnet` create the directory; do not use shell variables, pre-create it, use `Remove-Item -Recurse`, or combine the build and cleanup. Empty ignored directories may remain.
+- Such builds are only necessary after a significant C# code change, not after every minor edit.
 - Do not introduce any test projects.
-- Do not access files named `appsettings.json`, `secrets.json`, or `local.settings.json` under any circumstances.
+- Do not access `secrets.json` or inspect the values of live app settings under any circumstances.
 
 ## Editing
 
 - Avoid editing more than one file in a single tool call, as a context miss can lead the whole change to be rejected. If multiple files need to be edited, make the changes in separate tool calls.
 - When the user sends a follow-up message, assume that they may have edited the codebase. Always check the latest code before making further edits.
+- Keep `SchoolBromcomClient` in sync with any changes made to `BromcomClient`.
 
 ## Code Style
 
@@ -30,9 +32,3 @@
   - expression-bodied members when they fit on one line
   - omitting braces for single-line blocks
   - correct nullable annotations in the BromcomEssentials project, but not in the Sample project
-- When writing JavaScript, prefer:
-  - modern ES2025+ syntax
-  - semicolons
-  - no trailing commas
-  - `const` for variables that are not reassigned and `let` for those that are
-  - DOM lookups, ideally in an `elements` object near the top

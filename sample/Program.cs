@@ -1,31 +1,43 @@
+using System.Globalization;
 using BromcomEssentials;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-using var host = Host.CreateDefaultBuilder(args)
-    .ConfigureAppConfiguration((_, builder) => builder.AddUserSecrets<Program>())
-    .Build();
+var builder = Host.CreateApplicationBuilder(args);
+var cfg = builder.Configuration;
+cfg.AddUserSecrets<Program>();
+var connectionString = builder.Configuration.GetConnectionString("AppConfiguration");
+if (!string.IsNullOrWhiteSpace(connectionString))
+  cfg.AddAzureAppConfiguration(options => options.Connect(connectionString).Select("Bromcom:*").TrimKeyPrefix("Bromcom:"));
 
-var cfg = host.Services.GetRequiredService<IConfiguration>();
-var applicationId = cfg["applicationId"];
-var applicationSecret = cfg["applicationSecret"];
-var schoolId = int.Parse(cfg["schoolId"]);
+var applicationId = cfg["BromcomApplicationId"] ?? throw new InvalidOperationException("Configuration value 'BromcomApplicationId' is required.");
+var applicationSecret = cfg["BromcomApplicationSecret"] ?? throw new InvalidOperationException("Configuration value 'BromcomApplicationSecret' is required.");
+var schoolIdValue = cfg["BromcomSchoolId"] ?? throw new InvalidOperationException("Configuration value 'BromcomSchoolId' is required.");
+
+if (!int.TryParse(schoolIdValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out var schoolId))
+  throw new InvalidOperationException("Configuration value 'BromcomSchoolId' must be a valid integer.");
+
+builder.Services.AddHttpClient<SchoolBromcomClient, SchoolBromcomClient>(httpClient => new(applicationId, applicationSecret, schoolId, httpClient));
+
+using var host = builder.Build();
+using var scope = host.Services.CreateScope();
+
+var school = scope.ServiceProvider.GetRequiredService<SchoolBromcomClient>();
 var today = DateOnly.FromDateTime(DateTime.Today);
 
-using var client = new BromcomClient(applicationId, applicationSecret);
-var students = await client.GetStudentsAsync(schoolId, includeClasses: true, includeTimetable: true);
-var staff = await client.GetStaffAsync(schoolId, includeClassesAndTimetable: true);
-var staffAbsences = await client.GetStaffAbsencesAsync(schoolId, today);
-var roomCovers = await client.GetRoomCoversAsync(schoolId, today);
-var staffCovers = await client.GetStaffCoversAsync(schoolId, today);
-var parentalConsents = await client.GetParentalConsentAsync(schoolId);
-var behaviourTypes = await client.GetBehaviourTypesAsync(schoolId);
-var behaviourEvents = await client.GetBehaviourEventsAsync(schoolId, today);
-var departments = await client.GetDepartmentsAsync(schoolId);
-var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearGroup: 7, gradesOnly: true);
-var attendancesByWeek = await client.GetAttendancesByWeekAsync(schoolId, today);
-var periodAttendances = await client.GetAttendancesAsync(schoolId, today);
+var students = await school.GetStudentsAsync(includeClasses: true, includeTimetable: true);
+var staff = await school.GetStaffAsync(includeClassesAndTimetable: true);
+var staffAbsences = await school.GetStaffAbsencesAsync(today);
+var roomCovers = await school.GetRoomCoversAsync(today);
+var staffCovers = await school.GetStaffCoversAsync(today);
+var parentalConsents = await school.GetParentalConsentAsync();
+var behaviourTypes = await school.GetBehaviourTypesAsync();
+var behaviourEvents = await school.GetBehaviourEventsAsync(today);
+var departments = await school.GetDepartmentsAsync();
+var results = await school.GetResultsAsync(2026, term: "Spring", yearGroup: 7, gradesOnly: true);
+var attendancesByWeek = await school.GetAttendancesByWeekAsync(today);
+var periodAttendances = await school.GetAttendancesAsync(today);
 
 Console.WriteLine($"Students: {students.Count}");
 Console.WriteLine($"Staff: {staff.Count}");

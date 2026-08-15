@@ -6,22 +6,37 @@ Retrieve basic staff, student, department, attendance, cover, consent, behaviour
 
 ## Usage
 
+Register `SchoolBromcomClient` as a typed HTTP client, then retrieve it from a scope:
+
 ```csharp
 using BromcomEssentials;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-using var client = new BromcomClient(applicationId, applicationSecret);
-var students = await client.GetStudentsAsync(schoolId, includeClasses: true, includeTimetable: true);
-var staff = await client.GetStaffAsync(schoolId, includeClassesAndTimetable: true);
-var staffAbsences = await client.GetStaffAbsencesAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
-var roomCovers = await client.GetRoomCoversAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
-var staffCovers = await client.GetStaffCoversAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
-var parentalConsents = await client.GetParentalConsentAsync(schoolId, consentType: "U");
-var behaviourTypes = await client.GetBehaviourTypesAsync(schoolId);
-var behaviourEvents = await client.GetBehaviourEventsAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
-var departments = await client.GetDepartmentsAsync(schoolId);
-var results = await client.GetResultsAsync(schoolId, 2025, term: "Spring", yearGroup: 7, gradesOnly: true);
-var attendances = await client.GetAttendancesByWeekAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
-var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.FromDateTime(DateTime.Today));
+var builder = Host.CreateApplicationBuilder(args);
+var applicationId = builder.Configuration["BromcomApplicationId"]!;
+var applicationSecret = builder.Configuration["BromcomApplicationSecret"]!;
+var schoolId = int.Parse(builder.Configuration["BromcomSchoolId"]!);
+builder.Services.AddHttpClient<SchoolBromcomClient, SchoolBromcomClient>(httpClient =>
+  new(applicationId, applicationSecret, schoolId, httpClient));
+
+using var host = builder.Build();
+using var scope = host.Services.CreateScope();
+var client = scope.ServiceProvider.GetRequiredService<SchoolBromcomClient>();
+var today = DateOnly.FromDateTime(DateTime.Today);
+
+var students = await client.GetStudentsAsync(includeClasses: true, includeTimetable: true);
+var staff = await client.GetStaffAsync(includeClassesAndTimetable: true);
+var staffAbsences = await client.GetStaffAbsencesAsync(today);
+var roomCovers = await client.GetRoomCoversAsync(today);
+var staffCovers = await client.GetStaffCoversAsync(today);
+var parentalConsents = await client.GetParentalConsentAsync(consentType: "U");
+var behaviourTypes = await client.GetBehaviourTypesAsync();
+var behaviourEvents = await client.GetBehaviourEventsAsync(today);
+var departments = await client.GetDepartmentsAsync();
+var results = await client.GetResultsAsync(2025, term: "Spring", yearGroup: 7, gradesOnly: true);
+var attendances = await client.GetAttendancesByWeekAsync(today);
+var periodAttendances = await client.GetAttendancesAsync(today);
 ```
 
 ## Data model
@@ -47,7 +62,7 @@ var periodAttendances = await client.GetAttendancesAsync(schoolId, DateOnly.From
 | `IsLookedAfter` | `bool` |
 | `IsPupilPremium` | `bool` |
 | `EnrolmentStatus` | `string?` |
-| `Attendance` | `decimal` |
+| `Attendance` | `decimal?` |
 | `YearGroup` | `int?` |
 | `TutorGroup` | `string?` |
 | `Parents` | `IReadOnlyList<ParentContact>` |
