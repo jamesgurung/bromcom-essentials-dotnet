@@ -92,6 +92,64 @@ public sealed class StudentTimetableEntry
   public string? TeacherCode { get; init; }
 }
 
+/// <summary>A club that is active at the school.</summary>
+[DebuggerDisplay("{Name,nq}")]
+public sealed class Club
+{
+  /// <summary>Gets the Bromcom club identifier.</summary>
+  public int Id { get; init; }
+  /// <summary>Gets the club name.</summary>
+  public string? Name { get; init; }
+  /// <summary>Gets the club description.</summary>
+  public string? Description { get; init; }
+  /// <summary>Gets the club start date.</summary>
+  public DateOnly StartDate { get; init; }
+  /// <summary>Gets the club end date.</summary>
+  public DateOnly? EndDate { get; init; }
+  /// <summary>Gets the club time as supplied by Bromcom.</summary>
+  public string? Time { get; init; }
+  /// <summary>Gets the club day of the week as supplied by Bromcom.</summary>
+  public string? DayOfWeek { get; init; }
+  /// <summary>Gets the club length as supplied by Bromcom.</summary>
+  public string? Length { get; init; }
+  /// <summary>Gets the number of reserved spaces.</summary>
+  public int? ReservedSpaces { get; init; }
+  /// <summary>Gets the club membership limit.</summary>
+  public int? MembershipLimit { get; init; }
+  /// <summary>Gets when the club becomes visible in MCAS.</summary>
+  public DateTime? McasLiveFrom { get; init; }
+  /// <summary>Gets when the club stops being visible in MCAS.</summary>
+  public DateTime? McasLiveUntil { get; init; }
+  /// <summary>Gets the full name of the staff member associated with the club.</summary>
+  public string? StaffName { get; init; }
+  /// <summary>Gets the club room.</summary>
+  public string? Room { get; init; }
+  /// <summary>Gets the name of the group associated with the club.</summary>
+  public string? AssociatedGroupName { get; init; }
+  /// <summary>Gets whether the club waiting list is enabled.</summary>
+  public bool IsWaitingListEnabled { get; init; }
+  /// <summary>Gets whether the club is a trip.</summary>
+  public bool IsTrip { get; init; }
+}
+
+/// <summary>A student's club membership and attendance record.</summary>
+[DebuggerDisplay("{ClubId}: {StudentId} {AttendanceDate}")]
+public sealed class ClubStudentAttendance
+{
+  /// <summary>Gets the Bromcom student identifier.</summary>
+  public int StudentId { get; init; }
+  /// <summary>Gets the Bromcom club identifier.</summary>
+  public int ClubId { get; init; }
+  /// <summary>Gets the student's club membership start date.</summary>
+  public DateOnly MembershipStartDate { get; init; }
+  /// <summary>Gets the student's club membership end date.</summary>
+  public DateOnly? MembershipEndDate { get; init; }
+  /// <summary>Gets the club attendance mark.</summary>
+  public string? Mark { get; init; }
+  /// <summary>Gets the club attendance date.</summary>
+  public DateOnly? AttendanceDate { get; init; }
+}
+
 /// <summary>Weekly attendance marks and calculated attendance percentage for a student.</summary>
 [DebuggerDisplay("{StudentId}: {Percentage}%")]
 public sealed class StudentWeeklyAttendance

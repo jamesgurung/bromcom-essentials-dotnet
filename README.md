@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, detention, department, attendance, cover, consent, behaviour, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, club, detention, department, attendance, cover, consent, behaviour, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -27,6 +27,8 @@ var today = DateOnly.FromDateTime(DateTime.Today);
 
 var students = await client.GetStudentsAsync(includeClasses: true, includeTimetable: true);
 var staff = await client.GetStaffAsync(includeClassesAndTimetable: true);
+var clubs = await client.GetClubsAsync();
+var clubAttendances = await client.GetClubAttendancesAsync(today);
 var staffAbsences = await client.GetStaffAbsencesAsync(today);
 var detentions = await client.GetDetentionsAsync(today);
 var roomCovers = await client.GetRoomCoversAsync(today);
@@ -117,6 +119,39 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `Period` | `string?` |
 | `Class` | `string?` |
 | `Room` | `string?` |
+
+### `Club`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `Name` | `string?` |
+| `Description` | `string?` |
+| `StartDate` | `DateOnly` |
+| `EndDate` | `DateOnly?` |
+| `Time` | `string?` |
+| `DayOfWeek` | `string?` |
+| `Length` | `string?` |
+| `ReservedSpaces` | `int?` |
+| `MembershipLimit` | `int?` |
+| `McasLiveFrom` | `DateTime?` |
+| `McasLiveUntil` | `DateTime?` |
+| `StaffName` | `string?` |
+| `Room` | `string?` |
+| `AssociatedGroupName` | `string?` |
+| `IsWaitingListEnabled` | `bool` |
+| `IsTrip` | `bool` |
+
+### `ClubStudentAttendance`
+
+| Property | Type |
+| --- | --- |
+| `StudentId` | `int` |
+| `ClubId` | `int` |
+| `MembershipStartDate` | `DateOnly` |
+| `MembershipEndDate` | `DateOnly?` |
+| `Mark` | `string?` |
+| `AttendanceDate` | `DateOnly?` |
 
 ### `StaffAbsence`
 
@@ -289,6 +324,8 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 * `/v2/BasicAttendance`
 * `/v2/BehaviourEventRecords`
 * `/v2/BehaviourEvents`
+* `/v2/ClubDetails`
+* `/v2/ClubStudentsAndAttendance`
 * `/v2/Departments`
 * `/v2/DepartmentTeachers`
 * `/v2/RoomCovers`

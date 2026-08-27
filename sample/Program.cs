@@ -28,6 +28,8 @@ var today = DateOnly.FromDateTime(DateTime.Today);
 
 var students = await school.GetStudentsAsync(includeClasses: true, includeTimetable: true);
 var staff = await school.GetStaffAsync(includeClassesAndTimetable: true);
+var clubs = await school.GetClubsAsync();
+var clubAttendances = await school.GetClubAttendancesAsync(today);
 var staffAbsences = await school.GetStaffAbsencesAsync(today);
 var detentions = await school.GetDetentionsAsync(today);
 var roomCovers = await school.GetRoomCoversAsync(today);
@@ -42,6 +44,8 @@ var periodAttendances = await school.GetAttendancesAsync(today);
 
 Console.WriteLine($"Students: {students.Count}");
 Console.WriteLine($"Staff: {staff.Count}");
+Console.WriteLine($"Clubs: {clubs.Count}");
+Console.WriteLine($"Club attendances: {clubAttendances.Count}");
 Console.WriteLine($"Staff absences: {staffAbsences.Count}");
 Console.WriteLine($"Detentions: {detentions.Count}");
 Console.WriteLine($"Room covers: {roomCovers.Count}");

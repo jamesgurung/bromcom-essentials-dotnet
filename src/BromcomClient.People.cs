@@ -93,14 +93,14 @@ public partial class BromcomClient
     {
       var timetableRows = await GetTimetableRowsAsync(schoolId, false, cancellationToken).ConfigureAwait(false);
       classesByStaffId = timetableRows
-        .Where(x => !string.IsNullOrWhiteSpace(x.ClassName))
-        .GroupBy(x => x.StaffId)
+        .Where(x => x.StaffId is not null && !string.IsNullOrWhiteSpace(x.ClassName))
+        .GroupBy(x => x.StaffId!.Value)
         .ToDictionary(
           g => g.Key,
           g => g.Select(x => CleanClassName(x.ClassName)!).Distinct(StringComparer.OrdinalIgnoreCase).ToList());
       timetableByStaffId = timetableRows
-        .Where(x => !string.IsNullOrWhiteSpace(x.WeekDayPeriod) && !string.IsNullOrWhiteSpace(x.TimetableEntry))
-        .GroupBy(x => x.StaffId)
+        .Where(x => x.StaffId is not null && !string.IsNullOrWhiteSpace(x.WeekDayPeriod) && !string.IsNullOrWhiteSpace(x.TimetableEntry))
+        .GroupBy(x => x.StaffId!.Value)
         .ToDictionary(
           g => g.Key,
           g => g.OrderBy(x => x.PeriodStartDate).GroupBy(x => x.WeekDayPeriod, StringComparer.OrdinalIgnoreCase).Select(g => g.First())

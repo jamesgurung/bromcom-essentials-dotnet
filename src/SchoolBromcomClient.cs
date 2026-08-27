@@ -29,6 +29,15 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<Staff>> GetStaffAsync(bool includeClassesAndTimetable = false, CancellationToken cancellationToken = default) =>
     _client.GetStaffAsync(_schoolId, includeClassesAndTimetable, cancellationToken);
 
+  /// <summary>Gets clubs that are active today.</summary>
+  public Task<IReadOnlyList<Club>> GetClubsAsync(CancellationToken cancellationToken = default) =>
+    _client.GetClubsAsync(_schoolId, cancellationToken);
+
+  /// <summary>Gets club attendance records for a date range.</summary>
+  public Task<IReadOnlyList<ClubStudentAttendance>> GetClubAttendancesAsync(DateOnly startDate, DateOnly? endDate = null,
+    CancellationToken cancellationToken = default) =>
+    _client.GetClubAttendancesAsync(_schoolId, startDate, endDate, cancellationToken);
+
   /// <summary>Gets morning and afternoon attendance marks for the week containing a date.</summary>
   public Task<IReadOnlyList<StudentWeeklyAttendance>> GetAttendancesByWeekAsync(DateOnly date, CancellationToken cancellationToken = default) =>
     _client.GetAttendancesByWeekAsync(_schoolId, date, cancellationToken);

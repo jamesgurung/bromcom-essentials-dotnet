@@ -75,7 +75,7 @@ internal sealed class StaffAbsenceContract
   public int EmployeeId { get; set; }
   public string? StaffAbsenceCodeDescription { get; set; }
   public string? Notes { get; set; }
-  public decimal Duration { get; set; }
+  public decimal? Duration { get; set; }
   public string? StartDate { get; set; }
   public string? EndDate { get; set; }
 }
@@ -163,12 +163,12 @@ internal sealed class BehaviourEventPostContract : BehaviourEventContract
 
 internal sealed class TimetableContract
 {
-  public int StaffId { get; set; }
+  public int? StaffId { get; set; }
   public int? StudentId { get; set; }
   public string? ClassName { get; set; }
   public string? LocationName { get; set; }
   public string? WeekNumber { get; set { field = value; _hasWeekDayPeriod = false; } }
-  public int TimetableDay { get; set { field = value; _hasWeekDayPeriod = false; } }
+  public int? TimetableDay { get; set { field = value; _hasWeekDayPeriod = false; } }
   public string? PeriodName { get; set { field = value; _hasWeekDayPeriod = false; } }
   public string? TimetableEntry { get; set; }
   public string? PeriodStartDate { get; set; }
@@ -180,7 +180,7 @@ internal sealed class TimetableContract
     get
     {
       if (_hasWeekDayPeriod) return field;
-      field = int.TryParse(WeekNumber, out var week) && int.TryParse(PeriodName, out var period) ? $"W{week:00}:D{TimetableDay:00}:{period:00}" : null;
+      field = int.TryParse(WeekNumber, out var week) && TimetableDay is int day && int.TryParse(PeriodName, out var period) ? $"W{week:00}:D{day:00}:{period:00}" : null;
       _hasWeekDayPeriod = true;
       return field;
     }
@@ -205,7 +205,7 @@ internal sealed class TimetableContract
 internal sealed class DepartmentContract
 {
   public int DepartmentId { get; set; }
-  public int SubjectId { get; set; }
+  public int? SubjectId { get; set; }
   public string? CollectionName { get; set; }
 }
 
@@ -257,4 +257,35 @@ internal sealed class BasicAttendanceContract
   public string? Mark { get; set; }
   public string? PeriodDisplayName { get; set; }
   public string? AttendanceComment { get; set; }
+}
+
+internal sealed class ClubDetailsContract
+{
+  public int CollectionId { get; set; }
+  public string? ClubName { get; set; }
+  public string? ClubDescription { get; set; }
+  public string? ClubStartDate { get; set; }
+  public string? ClubEndDate { get; set; }
+  public string? ClubTime { get; set; }
+  public string? DayOfWeek { get; set; }
+  public string? ClubLength { get; set; }
+  public int? ReservedSpaces { get; set; }
+  public int? MembershipLimit { get; set; }
+  public string? WhenLiveOnMcas { get; set; }
+  public string? ClubStaffFullName { get; set; }
+  public string? ClubRoom { get; set; }
+  public string? AssociatedGroupName { get; set; }
+  public string? LiveOnMcasEndDate { get; set; }
+  public bool IsWaitingListEnabledBoolen { get; set; }
+  public bool IsTripBoolen { get; set; }
+}
+
+internal sealed class ClubStudentAttendanceContract
+{
+  public int StudentId { get; set; }
+  public int ClubId { get; set; }
+  public string? StudentClubMembershipStartDate { get; set; }
+  public string? StudentClubMembershipEndDate { get; set; }
+  public string? Mark { get; set; }
+  public string? AttendanceDate { get; set; }
 }

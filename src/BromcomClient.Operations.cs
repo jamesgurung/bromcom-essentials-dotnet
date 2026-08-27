@@ -37,7 +37,7 @@ public partial class BromcomClient
       EmployeeId = x.Row.EmployeeId,
       Type = CleanString(x.Row.StaffAbsenceCodeDescription),
       Notes = CleanString(x.Row.Notes),
-      Duration = x.Row.Duration,
+      Duration = x.Row.Duration.GetValueOrDefault(),
       Start = x.StartTime,
       End = x.EndTime
     }).OrderBy(x => x.Start).ThenBy(x => x.EmployeeId).ThenBy(x => x.Id).ToList();
@@ -293,9 +293,9 @@ public partial class BromcomClient
     {
       Id = g.Key,
       Name = CleanString(g.First()?.CollectionName),
-      Subjects = g.Where(r => subjectsById.ContainsKey(r.SubjectId)).DistinctBy(r => r.SubjectId).Select(r =>
+      Subjects = g.Where(r => r.SubjectId is not null && subjectsById.ContainsKey(r.SubjectId.Value)).DistinctBy(r => r.SubjectId).Select(r =>
       {
-        var subject = subjectsById[r.SubjectId];
+        var subject = subjectsById[r.SubjectId!.Value];
         return new Subject { Id = subject.SubjectId, Name = CleanString(subject.SubjectName), Code = CleanString(subject.Abbreviation) };
       }).ToList(),
       HeadOfDepartmentId = teachersByDepartmentId[g.Key]
