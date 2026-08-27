@@ -80,6 +80,25 @@ internal sealed class StaffAbsenceContract
   public string? EndDate { get; set; }
 }
 
+internal sealed class DetentionContract
+{
+  public int DetentionId { get; set; }
+  public int StudentId { get; set; }
+  public string? DetentionTypeDescription { get; set; }
+  public string? DetentionTypeName { get; set; }
+  public string? DetentionStartDate { get; set; }
+  public string? DetentionEndDate { get; set; }
+  public int? EmployeeId { get; set; }
+  public int? LocationId { get; set; }
+  public string? Mark { get; set; }
+  public string? IsDetentionScheduled { get; set; }
+  public string? IsAuthorised { get; set; }
+  public string? IsEscalated { get; set; }
+  public string? PeriodDisplayName { get; set; }
+  public int? EventRecordId { get; set; }
+  public string? DetentionSource { get; set; }
+}
+
 internal sealed class StaffLineManagerContract
 {
   public int EmployeeId { get; set; }

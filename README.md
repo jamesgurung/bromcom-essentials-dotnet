@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, department, attendance, cover, consent, behaviour, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, detention, department, attendance, cover, consent, behaviour, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -28,6 +28,7 @@ var today = DateOnly.FromDateTime(DateTime.Today);
 var students = await client.GetStudentsAsync(includeClasses: true, includeTimetable: true);
 var staff = await client.GetStaffAsync(includeClassesAndTimetable: true);
 var staffAbsences = await client.GetStaffAbsencesAsync(today);
+var detentions = await client.GetDetentionsAsync(today);
 var roomCovers = await client.GetRoomCoversAsync(today);
 var staffCovers = await client.GetStaffCoversAsync(today);
 var parentalConsents = await client.GetParentalConsentAsync(consentType: "U");
@@ -128,6 +129,26 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `Duration` | `decimal` |
 | `Start` | `DateTime` |
 | `End` | `DateTime?` |
+
+### `Detention`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `StudentId` | `int` |
+| `Type` | `string?` |
+| `Description` | `string?` |
+| `Start` | `DateTime` |
+| `End` | `DateTime?` |
+| `EmployeeId` | `int?` |
+| `LocationId` | `int?` |
+| `Mark` | `string?` |
+| `IsScheduled` | `bool` |
+| `IsAuthorised` | `bool` |
+| `IsEscalated` | `bool` |
+| `PeriodName` | `string?` |
+| `EventRecordId` | `int?` |
+| `Source` | `string?` |
 
 ### `RoomCover`
 
@@ -276,6 +297,7 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 * `/v2/StaffCovers`
 * `/v2/StaffLineManagers`
 * `/v2/StudentAttendanceByWeek`
+* `/v2/StudentDetentions`
 * `/v2/StudentFlatView`
 * `/v2/StudentParentalConsent`
 * `/v2/StudentTimetables`

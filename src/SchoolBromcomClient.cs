@@ -43,6 +43,11 @@ public sealed class SchoolBromcomClient : IDisposable
     CancellationToken cancellationToken = default) =>
     _client.GetStaffAbsencesAsync(_schoolId, startDate, endDate, cancellationToken);
 
+  /// <summary>Gets student detentions for a date range.</summary>
+  public Task<IReadOnlyList<Detention>> GetDetentionsAsync(DateOnly startDate, DateOnly? endDate = null,
+    CancellationToken cancellationToken = default) =>
+    _client.GetDetentionsAsync(_schoolId, startDate, endDate, cancellationToken);
+
   /// <summary>Gets room covers for a date range.</summary>
   public Task<IReadOnlyList<RoomCover>> GetRoomCoversAsync(DateOnly startDate, DateOnly? endDate = null,
     CancellationToken cancellationToken = default) =>

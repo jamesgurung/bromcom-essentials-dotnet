@@ -222,6 +222,42 @@ public sealed class StaffAbsence
   public DateTime? End { get; init; }
 }
 
+/// <summary>A detention assigned to a student.</summary>
+[DebuggerDisplay("{StudentId}: {Start} {Type,nq}")]
+public sealed class Detention
+{
+  /// <summary>Gets the Bromcom detention identifier.</summary>
+  public int Id { get; init; }
+  /// <summary>Gets the Bromcom student identifier.</summary>
+  public int StudentId { get; init; }
+  /// <summary>Gets the detention type name.</summary>
+  public string? Type { get; init; }
+  /// <summary>Gets the detention type description.</summary>
+  public string? Description { get; init; }
+  /// <summary>Gets the scheduled start date and time.</summary>
+  public DateTime Start { get; init; }
+  /// <summary>Gets the scheduled end date and time.</summary>
+  public DateTime? End { get; init; }
+  /// <summary>Gets the employee identifier associated with the detention.</summary>
+  public int? EmployeeId { get; init; }
+  /// <summary>Gets the location identifier associated with the detention.</summary>
+  public int? LocationId { get; init; }
+  /// <summary>Gets the detention mark.</summary>
+  public string? Mark { get; init; }
+  /// <summary>Gets whether the detention has been scheduled.</summary>
+  public bool IsScheduled { get; init; }
+  /// <summary>Gets whether the detention is authorised.</summary>
+  public bool IsAuthorised { get; init; }
+  /// <summary>Gets whether the detention has been escalated.</summary>
+  public bool IsEscalated { get; init; }
+  /// <summary>Gets the period display name.</summary>
+  public string? PeriodName { get; init; }
+  /// <summary>Gets the associated behaviour event record identifier.</summary>
+  public int? EventRecordId { get; init; }
+  /// <summary>Gets the source of the detention.</summary>
+  public string? Source { get; init; }
+}
+
 /// <summary>A room cover arrangement in a date range.</summary>
 [DebuggerDisplay("{Date} {PeriodId,nq}: {ClassName,nq} {CoveredRoom,nq} -> {CoveringRoom,nq}")]
 public sealed class RoomCover

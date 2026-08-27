@@ -43,6 +43,50 @@ public partial class BromcomClient
     }).OrderBy(x => x.Start).ThenBy(x => x.EmployeeId).ThenBy(x => x.Id).ToList();
   }
 
+  /// <summary>Gets student detentions for a date range.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="startDate">The first date in the range.</param>
+  /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of detentions ordered by start date, student identifier, and detention identifier.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive or <paramref name="endDate"/> precedes <paramref name="startDate"/>.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<Detention>> GetDetentionsAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
+    CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+    ValidateDateRange(startDate, endDate);
+
+    var entityFilter = BuildDateRangeEntityFilter("detentionStartDate", startDate, endDate ?? startDate);
+    var detentions = await GetAsync<DetentionContract>("/v2/StudentDetentions", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+
+    return detentions.Select(row => new
+    {
+      Row = row,
+      Start = ParseDateTime(row.DetentionStartDate),
+      End = ParseDateTime(row.DetentionEndDate)
+    }).Where(x => x.Start is not null).Select(x => new Detention
+    {
+      Id = x.Row.DetentionId,
+      StudentId = x.Row.StudentId,
+      Type = CleanString(x.Row.DetentionTypeName),
+      Description = CleanString(x.Row.DetentionTypeDescription),
+      Start = x.Start.GetValueOrDefault(),
+      End = x.End,
+      EmployeeId = x.Row.EmployeeId,
+      LocationId = x.Row.LocationId,
+      Mark = CleanString(x.Row.Mark),
+      IsScheduled = ParseBooleanFlag(x.Row.IsDetentionScheduled),
+      IsAuthorised = ParseBooleanFlag(x.Row.IsAuthorised),
+      IsEscalated = ParseBooleanFlag(x.Row.IsEscalated),
+      PeriodName = CleanString(x.Row.PeriodDisplayName),
+      EventRecordId = x.Row.EventRecordId,
+      Source = CleanString(x.Row.DetentionSource)
+    }).OrderBy(x => x.Start).ThenBy(x => x.StudentId).ThenBy(x => x.Id).ToList();
+  }
+
   /// <summary>Gets room cover arrangements for a date range.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="startDate">The first date in the range.</param>
