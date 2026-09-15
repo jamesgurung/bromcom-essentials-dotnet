@@ -106,7 +106,7 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `Forename` | `string?` |
 | `Surname` | `string?` |
 | `Email` | `string?` |
-| `TelephoneExtension` | `string?` |
+| `TelephoneExtension` | `int?` |
 | `StaffCode` | `string?` |
 | `JobTitle` | `string?` |
 | `LineManagerId` | `int?` |

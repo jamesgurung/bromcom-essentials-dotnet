@@ -114,7 +114,7 @@ public partial class BromcomClient
       Forename = CleanString(row.PreferredFirstName) ?? CleanString(row.FirstName),
       Surname = CleanString(row.PreferredLastName) ?? CleanString(row.LastName),
       Email = CleanString(row.WorkEmail)?.ToLowerInvariant(),
-      TelephoneExtension = CleanString(row.ExtensionNo),
+      TelephoneExtension = row.ExtensionNo,
       StaffCode = CleanString(row.StaffCode),
       JobTitle = CleanString(row.JobTitle),
       LineManagerId = lineManagerIdsByStaffId.TryGetValue(row.StaffId, out var lineManagerId) ? lineManagerId : null,

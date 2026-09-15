@@ -237,7 +237,7 @@ public sealed class Staff
   /// <summary>Gets the staff member email address.</summary>
   public string? Email { get; init; }
   /// <summary>Gets the staff member telephone extension.</summary>
-  public string? TelephoneExtension { get; init; }
+  public int? TelephoneExtension { get; init; }
   /// <summary>Gets the staff code.</summary>
   public string? StaffCode { get; init; }
   /// <summary>Gets the staff member job title.</summary>
