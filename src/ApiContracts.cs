@@ -65,6 +65,7 @@ internal sealed class StaffContract
   public string? FirstName { get; set; }
   public string? LastName { get; set; }
   public string? WorkEmail { get; set; }
+  public string? ExtensionNo { get; set; }
   public string? StaffCode { get; set; }
   public string? JobTitle { get; set; }
 }

@@ -12,9 +12,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureAppConfiguration" Version="8.7.0-preview" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="11.0.0-preview.7.26381.103" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="11.0.0-preview.7.26381.103" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="11.0.0-preview.7.26381.103" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="11.0.0-rc.1.26425.128" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="11.0.0-rc.1.26425.128" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="11.0.0-rc.1.26425.128" />
   </ItemGroup>
 
   <ItemGroup>
