@@ -440,6 +440,22 @@ public sealed class Subject
   public string? Code { get; init; }
 }
 
+/// <summary>An assessment column.</summary>
+[DebuggerDisplay("{Type,nq} {Subject,nq}")]
+public sealed class AssessmentColumn
+{
+  /// <summary>Gets the Bromcom assessment type identifier.</summary>
+  public int? Id { get; init; }
+  /// <summary>Gets the assessment type.</summary>
+  public required string Type { get; init; }
+  /// <summary>Gets the term associated with the assessment column.</summary>
+  public string? Term { get; init; }
+  /// <summary>Gets the year group associated with the assessment column.</summary>
+  public int? YearGroup { get; init; }
+  /// <summary>Gets the subject associated with the assessment column.</summary>
+  public string? Subject { get; init; }
+}
+
 /// <summary>An assessment result for a student.</summary>
 [DebuggerDisplay("{StudentId}: {Type,nq} {Subject,nq} = {Result,nq}")]
 public sealed class AssessmentResult

@@ -224,6 +224,15 @@ internal sealed class SubjectContract
   public string? Abbreviation { get; set; }
 }
 
+internal sealed class AssessmentColumnContract
+{
+  public int? AssessmentTypeId { get; set; }
+  public string? AssessmentTypeName { get; set; }
+  public string? TermName { get; set; }
+  public string? YearGroupName { get; set; }
+  public string? SubjectName { get; set; }
+}
+
 internal sealed class AssessmentResultContract
 {
   public int StudentId { get; set; }

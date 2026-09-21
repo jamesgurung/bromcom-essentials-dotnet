@@ -307,6 +307,36 @@ public partial class BromcomClient
     }).OrderBy(d => d.Name).ToList();
   }
 
+  /// <summary>Gets assessment columns, with optional term and year group filters.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="term">Optional term name to filter by.</param>
+  /// <param name="yearGroup">Optional year group to filter by.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of assessment columns ordered by year group, term, subject, type, and identifier.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<AssessmentColumn>> GetColumnsAsync(int schoolId, string? term = null, int? yearGroup = null,
+    CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var filters = new List<string>();
+    if (term is not null) filters.Add($"termName='{EscapeEntityFilterValue(term)}'");
+    if (yearGroup is not null) filters.Add($"yearGroupName='{yearGroup.Value.ToString(CultureInfo.InvariantCulture)}'");
+    var columns = await GetAsync<AssessmentColumnContract>("/v2/AssociationAssessmentColumns", schoolId, string.Join(" and ", filters), null, cancellationToken).ConfigureAwait(false);
+
+    return columns.Where(row => !string.IsNullOrWhiteSpace(row.AssessmentTypeName)).Select(row => new AssessmentColumn
+    {
+      Id = row.AssessmentTypeId,
+      Type = CleanString(row.AssessmentTypeName)!,
+      Term = CleanString(row.TermName),
+      YearGroup = ParseNullableInt(row.YearGroupName),
+      Subject = CleanString(row.SubjectName)
+    }).OrderBy(x => x.YearGroup).ThenBy(x => x.Term).ThenBy(x => x.Subject).ThenBy(x => x.Type).ThenBy(x => x.Id).ToList();
+  }
+
   /// <summary>Gets assessment results for an academic year, with optional term and year group filters.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="academicYearStart">The calendar year in which the academic year starts.</param>

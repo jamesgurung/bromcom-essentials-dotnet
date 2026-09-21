@@ -88,6 +88,11 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<Department>> GetDepartmentsAsync(CancellationToken cancellationToken = default) =>
     _client.GetDepartmentsAsync(_schoolId, cancellationToken);
 
+  /// <summary>Gets assessment columns, with optional term and year group filters.</summary>
+  public Task<IReadOnlyList<AssessmentColumn>> GetColumnsAsync(string? term = null, int? yearGroup = null,
+    CancellationToken cancellationToken = default) =>
+    _client.GetColumnsAsync(_schoolId, term, yearGroup, cancellationToken);
+
   /// <summary>Gets assessment results for an academic year, with optional term and year group filters.</summary>
   public Task<IReadOnlyList<AssessmentResult>> GetResultsAsync(int academicYearStart, string? term = null, int? yearGroup = null,
     bool gradesOnly = false, CancellationToken cancellationToken = default) =>

@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, club, detention, department, attendance, cover, consent, behaviour, and assessment result data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, club, detention, department, attendance, cover, consent, behaviour, and assessment data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -37,6 +37,7 @@ var parentalConsents = await client.GetParentalConsentAsync(consentType: "U");
 var behaviourTypes = await client.GetBehaviourTypesAsync();
 var behaviourEvents = await client.GetBehaviourEventsAsync(today);
 var departments = await client.GetDepartmentsAsync();
+var columns = await client.GetColumnsAsync(term: "Spring", yearGroup: 7);
 var results = await client.GetResultsAsync(2025, term: "Spring", yearGroup: 7, gradesOnly: true);
 var attendances = await client.GetAttendancesByWeekAsync(today);
 var periodAttendances = await client.GetAttendancesAsync(today);
@@ -261,6 +262,16 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `Name` | `string?` |
 | `Code` | `string?` |
 
+### `AssessmentColumn`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int?` |
+| `Type` | `string` |
+| `Term` | `string?` |
+| `YearGroup` | `int?` |
+| `Subject` | `string?` |
+
 ### `AssessmentResult`
 
 | Property | Type |
@@ -321,6 +332,7 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 
 ## Upstream API endpoints
 
+* `/v2/AssociationAssessmentColumns`
 * `/v2/AssociationAssessmentResultsRaw`
 * `/v2/BasicAttendance`
 * `/v2/BehaviourEventRecords`
