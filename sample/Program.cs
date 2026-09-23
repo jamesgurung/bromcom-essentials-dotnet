@@ -28,6 +28,8 @@ var today = DateOnly.FromDateTime(DateTime.Today);
 
 var students = await school.GetStudentsAsync(includeClasses: true, includeTimetable: true);
 var staff = await school.GetStaffAsync(includeClassesAndTimetable: true);
+var photoIds = await school.GetPhotoIdsAsync();
+var photo = photoIds.Count > 0 ? await school.GetPhotoAsync(photoIds[0].PhotoId) : null;
 var clubs = await school.GetClubsAsync();
 var clubAttendances = await school.GetClubAttendancesAsync(today);
 var staffAbsences = await school.GetStaffAbsencesAsync(today);
@@ -45,6 +47,9 @@ var periodAttendances = await school.GetAttendancesAsync(today);
 
 Console.WriteLine($"Students: {students.Count}");
 Console.WriteLine($"Staff: {staff.Count}");
+Console.WriteLine($"Photo IDs: {photoIds.Count}");
+Console.WriteLine($"First photo bytes: {photo?.Content.Length ?? 0}");
+Console.WriteLine($"First photo content type: {photo?.ContentType}");
 Console.WriteLine($"Clubs: {clubs.Count}");
 Console.WriteLine($"Club attendances: {clubAttendances.Count}");
 Console.WriteLine($"Staff absences: {staffAbsences.Count}");

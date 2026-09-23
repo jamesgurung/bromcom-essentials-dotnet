@@ -29,6 +29,14 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<Staff>> GetStaffAsync(bool includeClassesAndTimetable = false, CancellationToken cancellationToken = default) =>
     _client.GetStaffAsync(_schoolId, includeClassesAndTimetable, cancellationToken);
 
+  /// <summary>Gets person and photo identifiers.</summary>
+  public Task<List<PersonPhotoId>> GetPhotoIdsAsync(CancellationToken cancellationToken = default) =>
+    _client.GetPhotoIdsAsync(_schoolId, cancellationToken);
+
+  /// <summary>Gets the image for an encrypted photo identifier.</summary>
+  public Task<PersonPhoto> GetPhotoAsync(string photoId, CancellationToken cancellationToken = default) =>
+    _client.GetPhotoAsync(photoId, cancellationToken);
+
   /// <summary>Gets clubs that are active today.</summary>
   public Task<IReadOnlyList<Club>> GetClubsAsync(CancellationToken cancellationToken = default) =>
     _client.GetClubsAsync(_schoolId, cancellationToken);

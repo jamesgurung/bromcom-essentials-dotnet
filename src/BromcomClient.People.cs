@@ -2,6 +2,37 @@ namespace BromcomEssentials;
 
 public partial class BromcomClient
 {
+  /// <summary>Gets person and photo identifiers for a school.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of people with photo identifiers.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<List<PersonPhotoId>> GetPhotoIdsAsync(int schoolId, CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var photos = await GetAsync<PersonPhotoContract>("/v2/PersonPhotos", schoolId, string.Empty, null, cancellationToken).ConfigureAwait(false);
+    return photos.Where(row => row.PersonId is not null && !string.IsNullOrWhiteSpace(row.Photo))
+      .Select(row => new PersonPhotoId { PersonId = row.PersonId!.Value, PhotoId = row.Photo! }).ToList();
+  }
+
+  /// <summary>Gets the image for an encrypted photo identifier.</summary>
+  /// <param name="photoId">The encrypted photo identifier.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>The image bytes and content type returned by Bromcom.</returns>
+  /// <exception cref="ArgumentException">Thrown when <paramref name="photoId"/> is blank.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the image request returns an unsuccessful status code.</exception>
+  public Task<PersonPhoto> GetPhotoAsync(string photoId, CancellationToken cancellationToken = default)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+    ArgumentException.ThrowIfNullOrWhiteSpace(photoId);
+    return _transport.GetPhotoAsync(photoId, cancellationToken);
+  }
+
   /// <summary>Gets students for a school, with optional class and timetable data.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="includeClasses">Whether to include class memberships for each student.</param>

@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, club, detention, department, attendance, cover, consent, behaviour, and assessment data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, photo, club, detention, department, attendance, cover, consent, behaviour, and assessment data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -27,6 +27,8 @@ var today = DateOnly.FromDateTime(DateTime.Today);
 
 var students = await client.GetStudentsAsync(includeClasses: true, includeTimetable: true);
 var staff = await client.GetStaffAsync(includeClassesAndTimetable: true);
+var photoIds = await client.GetPhotoIdsAsync();
+var photo = photoIds.Count > 0 ? await client.GetPhotoAsync(photoIds[0].PhotoId) : null;
 var clubs = await client.GetClubsAsync();
 var clubAttendances = await client.GetClubAttendancesAsync(today);
 var staffAbsences = await client.GetStaffAbsencesAsync(today);
@@ -97,6 +99,20 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `Class` | `string?` |
 | `Room` | `string?` |
 | `TeacherCode` | `string?` |
+
+### `PersonPhotoId`
+
+| Property | Type |
+| --- | --- |
+| `PersonId` | `int` |
+| `PhotoId` | `string` |
+
+### `PersonPhoto`
+
+| Property | Type |
+| --- | --- |
+| `Content` | `byte[]` |
+| `ContentType` | `string` |
 
 ### `Staff`
 
@@ -341,6 +357,7 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 * `/v2/ClubStudentsAndAttendance`
 * `/v2/Departments`
 * `/v2/DepartmentTeachers`
+* `/v2/PersonPhotos`
 * `/v2/RoomCovers`
 * `/v2/Staff`
 * `/v2/StaffAbsences`

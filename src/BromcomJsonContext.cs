@@ -5,6 +5,7 @@ namespace BromcomEssentials;
 
 [JsonSourceGenerationOptions(JsonSerializerDefaults.Web, PropertyNameCaseInsensitive = true)]
 [JsonSerializable(typeof(ApiResponse<StudentFlatViewContract>))]
+[JsonSerializable(typeof(ApiResponse<PersonPhotoContract>))]
 [JsonSerializable(typeof(ApiResponse<YearGroupSubjectStudentContract>))]
 [JsonSerializable(typeof(ApiResponse<StaffContract>))]
 [JsonSerializable(typeof(ApiResponse<StaffAbsenceContract>))]

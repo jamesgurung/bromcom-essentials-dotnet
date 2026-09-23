@@ -49,6 +49,12 @@ internal sealed class StudentFlatViewContract
   public string? Contact3ParentalResponsibility { get; set; }
 }
 
+internal sealed class PersonPhotoContract
+{
+  public int? PersonId { get; set; }
+  public string? Photo { get; set; }
+}
+
 internal sealed class YearGroupSubjectStudentContract
 {
   public int StudentId { get; set; }

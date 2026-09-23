@@ -5,6 +5,7 @@ namespace BromcomEssentials;
 internal sealed class BromcomApiTransport : IDisposable
 {
   private const string ApiBaseUrl = "https://api.bromcomcloud.com";
+  private const string PhotoUrl = "https://Cloudmis.Bromcom.com/Nucleus/Framework/Components/Controls/ImageDisplay.ashx";
 
   private readonly HttpClient _httpClient;
   private readonly bool _ownsHttpClient;
@@ -66,6 +67,19 @@ internal sealed class BromcomApiTransport : IDisposable
     using var request = CreateRequest(HttpMethod.Post, $"{ApiBaseUrl}{path}");
     request.Content = JsonContent.Create(payload, options: BromcomJsonContext.Default.Options);
     using var response = await SendAsync(request, path, cancellationToken).ConfigureAwait(false);
+  }
+
+  public async Task<PersonPhoto> GetPhotoAsync(string photoId, CancellationToken cancellationToken)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    using var request = new HttpRequestMessage(HttpMethod.Get, $"{PhotoUrl}?EncID={Uri.EscapeDataString(photoId)}");
+    using var response = await SendAsync(request, "/Nucleus/Framework/Components/Controls/ImageDisplay.ashx", cancellationToken).ConfigureAwait(false);
+    return new PersonPhoto
+    {
+      Content = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false),
+      ContentType = response.Content.Headers.ContentType?.ToString() ?? string.Empty
+    };
   }
 
   private HttpRequestMessage CreateRequest(HttpMethod method, string url)
