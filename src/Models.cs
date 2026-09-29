@@ -127,10 +127,10 @@ public sealed class Club
   public DateOnly? EndDate { get; init; }
   /// <summary>Gets the club time as supplied by Bromcom.</summary>
   public string? Time { get; init; }
-  /// <summary>Gets the club day of the week as supplied by Bromcom.</summary>
-  public string? DayOfWeek { get; init; }
-  /// <summary>Gets the club length as supplied by Bromcom.</summary>
-  public string? Length { get; init; }
+  /// <summary>Gets the club day of the week.</summary>
+  public DayOfWeek? DayOfWeek { get; init; }
+  /// <summary>Gets the club length.</summary>
+  public int? Length { get; init; }
   /// <summary>Gets the number of reserved spaces.</summary>
   public int? ReservedSpaces { get; init; }
   /// <summary>Gets the club membership limit.</summary>
@@ -143,8 +143,8 @@ public sealed class Club
   public string? StaffName { get; init; }
   /// <summary>Gets the club room.</summary>
   public string? Room { get; init; }
-  /// <summary>Gets the name of the group associated with the club.</summary>
-  public string? AssociatedGroupName { get; init; }
+  /// <summary>Gets the groups associated with the club.</summary>
+  public List<string> AssociatedGroups { get; init; } = [];
   /// <summary>Gets whether the club waiting list is enabled.</summary>
   public bool IsWaitingListEnabled { get; init; }
   /// <summary>Gets whether the club is a trip.</summary>

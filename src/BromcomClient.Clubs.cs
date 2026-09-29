@@ -26,15 +26,15 @@ public partial class BromcomClient
         StartDate = x.StartDate.GetValueOrDefault(),
         EndDate = ParseDateOnly(x.Row.ClubEndDate),
         Time = CleanString(x.Row.ClubTime),
-        DayOfWeek = CleanString(x.Row.DayOfWeek),
-        Length = CleanString(x.Row.ClubLength),
+        DayOfWeek = Enum.TryParse<DayOfWeek>(x.Row.DayOfWeek, true, out var dayOfWeek) ? dayOfWeek : null,
+        Length = ParseNullableInt(x.Row.ClubLength),
         ReservedSpaces = x.Row.ReservedSpaces,
         MembershipLimit = x.Row.MembershipLimit,
         McasLiveFrom = ParseDateTime(x.Row.WhenLiveOnMcas),
         McasLiveUntil = ParseDateTime(x.Row.LiveOnMcasEndDate),
         StaffName = CleanString(x.Row.ClubStaffFullName),
         Room = CleanRoom(x.Row.ClubRoom),
-        AssociatedGroupName = CleanString(x.Row.AssociatedGroupName),
+        AssociatedGroups = x.Row.AssociatedGroupName?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList() ?? [],
         IsWaitingListEnabled = x.Row.IsWaitingListEnabledBoolen,
         IsTrip = x.Row.IsTripBoolen
       })

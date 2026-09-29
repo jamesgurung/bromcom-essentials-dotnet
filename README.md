@@ -148,15 +148,15 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `StartDate` | `DateOnly` |
 | `EndDate` | `DateOnly?` |
 | `Time` | `string?` |
-| `DayOfWeek` | `string?` |
-| `Length` | `string?` |
+| `DayOfWeek` | `DayOfWeek?` |
+| `Length` | `int?` |
 | `ReservedSpaces` | `int?` |
 | `MembershipLimit` | `int?` |
 | `McasLiveFrom` | `DateTime?` |
 | `McasLiveUntil` | `DateTime?` |
 | `StaffName` | `string?` |
 | `Room` | `string?` |
-| `AssociatedGroupName` | `string?` |
+| `AssociatedGroups` | `List<string>` |
 | `IsWaitingListEnabled` | `bool` |
 | `IsTrip` | `bool` |
 

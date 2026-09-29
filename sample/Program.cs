@@ -26,8 +26,8 @@ using var scope = host.Services.CreateScope();
 var school = scope.ServiceProvider.GetRequiredService<SchoolBromcomClient>();
 var today = DateOnly.FromDateTime(DateTime.Today);
 
-var students = await school.GetStudentsAsync(includeClasses: true, includeTimetable: true);
-var staff = await school.GetStaffAsync(includeClassesAndTimetable: true);
+//var students = await school.GetStudentsAsync(includeClasses: true, includeTimetable: true);
+//var staff = await school.GetStaffAsync(includeClassesAndTimetable: true);
 var photoIds = await school.GetPhotoIdsAsync();
 var photo = photoIds.Count > 0 ? await school.GetPhotoAsync(photoIds[0].PhotoId) : null;
 var clubs = await school.GetClubsAsync();
@@ -45,8 +45,8 @@ var results = await school.GetResultsAsync(2026, term: "Spring", yearGroup: 7, g
 var attendancesByWeek = await school.GetAttendancesByWeekAsync(today);
 var periodAttendances = await school.GetAttendancesAsync(today);
 
-Console.WriteLine($"Students: {students.Count}");
-Console.WriteLine($"Staff: {staff.Count}");
+//Console.WriteLine($"Students: {students.Count}");
+//Console.WriteLine($"Staff: {staff.Count}");
 Console.WriteLine($"Photo IDs: {photoIds.Count}");
 Console.WriteLine($"First photo bytes: {photo?.Content.Length ?? 0}");
 Console.WriteLine($"First photo content type: {photo?.ContentType}");
