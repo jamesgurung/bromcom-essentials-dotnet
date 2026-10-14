@@ -41,6 +41,10 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<Club>> GetClubsAsync(CancellationToken cancellationToken = default) =>
     _client.GetClubsAsync(_schoolId, cancellationToken);
 
+  /// <summary>Gets clubs that are active at any point in an inclusive date range.</summary>
+  public Task<IReadOnlyList<Club>> GetClubsAsync(DateOnly startDate, DateOnly endDate, CancellationToken cancellationToken = default) =>
+    _client.GetClubsAsync(_schoolId, startDate, endDate, cancellationToken);
+
   /// <summary>Gets club attendance records for a date range, with an optional student filter.</summary>
   public Task<IReadOnlyList<ClubStudentAttendance>> GetClubAttendancesAsync(DateOnly startDate, DateOnly? endDate = null,
     IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>

@@ -14,7 +14,34 @@ public partial class BromcomClient
   {
     ValidateRequest(schoolId);
 
-    var clubs = await GetAsync<ClubDetailsContract>("/v2/ClubDetails", schoolId, null, "club", cancellationToken).ConfigureAwait(false);
+    return await GetClubsCoreAsync(schoolId, null, cancellationToken).ConfigureAwait(false);
+  }
+
+  /// <summary>Gets clubs that are active at any point in an inclusive date range.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="startDate">The first date in the range.</param>
+  /// <param name="endDate">The last date in the range.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of active clubs ordered by name and identifier.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive or <paramref name="endDate"/> precedes <paramref name="startDate"/>.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<Club>> GetClubsAsync(int schoolId, DateOnly startDate, DateOnly endDate,
+    CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+    ValidateDateRange(startDate, endDate);
+
+    var start = startDate.ToDateTime(TimeOnly.MinValue);
+    var end = endDate.ToDateTime(new TimeOnly(23, 59, 59));
+    var entityFilter = FormattableString.Invariant($"clubStartDate<='{end:yyyy-MM-ddTHH:mm:ss}' and (clubEndDate>='{start:yyyy-MM-ddTHH:mm:ss}' or isnull(clubEndDate,'')='')");
+    return await GetClubsCoreAsync(schoolId, entityFilter, cancellationToken).ConfigureAwait(false);
+  }
+
+  private async Task<IReadOnlyList<Club>> GetClubsCoreAsync(int schoolId, string? entityFilter, CancellationToken cancellationToken)
+  {
+    var clubs = await GetAsync<ClubDetailsContract>("/v2/ClubDetails", schoolId, entityFilter, "club", cancellationToken).ConfigureAwait(false);
 
     return clubs.Select(row => new { Row = row, StartDate = ParseDateOnly(row.ClubStartDate) })
       .Where(x => x.StartDate is not null)
