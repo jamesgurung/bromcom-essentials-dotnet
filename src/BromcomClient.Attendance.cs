@@ -2,21 +2,24 @@ namespace BromcomEssentials;
 
 public partial class BromcomClient
 {
-  /// <summary>Gets morning and afternoon attendance marks for the week containing a date.</summary>
+  /// <summary>Gets morning and afternoon attendance marks for the week containing a date, with an optional student filter.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="date">A date in the attendance week to retrieve.</param>
+  /// <param name="studentIds">Optional student identifiers to filter by.</param>
   /// <param name="cancellationToken">A token that can cancel the request.</param>
   /// <returns>A list of weekly attendance records ordered by student identifier.</returns>
   /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
   /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
   /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
-  public async Task<IReadOnlyList<StudentWeeklyAttendance>> GetAttendancesByWeekAsync(int schoolId, DateOnly date, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<StudentWeeklyAttendance>> GetAttendancesByWeekAsync(int schoolId, DateOnly date,
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default)
   {
     ValidateRequest(schoolId);
 
     var dateTime = date.ToDateTime(new TimeOnly(12, 0));
     var entityFilter = FormattableString.Invariant($"startDate<='{dateTime:yyyy-MM-ddTHH:mm:ss}' and endDate>='{dateTime:yyyy-MM-ddTHH:mm:ss}'");
+    entityFilter = AppendStudentEntityFilter(entityFilter, studentIds);
     var attendances = await GetAsync<StudentAttendanceByWeekContract>("/v2/StudentAttendanceByWeek", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
 
     return attendances.Select(row =>

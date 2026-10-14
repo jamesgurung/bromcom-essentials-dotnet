@@ -34,21 +34,22 @@ public sealed class SchoolBromcomClient : IDisposable
     _client.GetPhotoIdsAsync(_schoolId, cancellationToken);
 
   /// <summary>Gets the image for an encrypted photo identifier.</summary>
-  public Task<PersonPhoto> GetPhotoAsync(string photoId, CancellationToken cancellationToken = default) =>
+  public Task<byte[]> GetPhotoAsync(string photoId, CancellationToken cancellationToken = default) =>
     _client.GetPhotoAsync(photoId, cancellationToken);
 
   /// <summary>Gets clubs that are active today.</summary>
   public Task<IReadOnlyList<Club>> GetClubsAsync(CancellationToken cancellationToken = default) =>
     _client.GetClubsAsync(_schoolId, cancellationToken);
 
-  /// <summary>Gets club attendance records for a date range.</summary>
+  /// <summary>Gets club attendance records for a date range, with an optional student filter.</summary>
   public Task<IReadOnlyList<ClubStudentAttendance>> GetClubAttendancesAsync(DateOnly startDate, DateOnly? endDate = null,
-    CancellationToken cancellationToken = default) =>
-    _client.GetClubAttendancesAsync(_schoolId, startDate, endDate, cancellationToken);
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetClubAttendancesAsync(_schoolId, startDate, endDate, studentIds, cancellationToken);
 
-  /// <summary>Gets morning and afternoon attendance marks for the week containing a date.</summary>
-  public Task<IReadOnlyList<StudentWeeklyAttendance>> GetAttendancesByWeekAsync(DateOnly date, CancellationToken cancellationToken = default) =>
-    _client.GetAttendancesByWeekAsync(_schoolId, date, cancellationToken);
+  /// <summary>Gets morning and afternoon attendance marks for the week containing a date, with an optional student filter.</summary>
+  public Task<IReadOnlyList<StudentWeeklyAttendance>> GetAttendancesByWeekAsync(DateOnly date,
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetAttendancesByWeekAsync(_schoolId, date, studentIds, cancellationToken);
 
   /// <summary>Gets period attendance marks for a date range, with optional period and student filters.</summary>
   public Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(DateOnly startDate, DateOnly? endDate = null, string? periodName = null,
@@ -60,10 +61,10 @@ public sealed class SchoolBromcomClient : IDisposable
     CancellationToken cancellationToken = default) =>
     _client.GetStaffAbsencesAsync(_schoolId, startDate, endDate, cancellationToken);
 
-  /// <summary>Gets student detentions for a date range.</summary>
+  /// <summary>Gets student detentions for a date range, with an optional student filter.</summary>
   public Task<IReadOnlyList<Detention>> GetDetentionsAsync(DateOnly startDate, DateOnly? endDate = null,
-    CancellationToken cancellationToken = default) =>
-    _client.GetDetentionsAsync(_schoolId, startDate, endDate, cancellationToken);
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetDetentionsAsync(_schoolId, startDate, endDate, studentIds, cancellationToken);
 
   /// <summary>Gets room covers for a date range.</summary>
   public Task<IReadOnlyList<RoomCover>> GetRoomCoversAsync(DateOnly startDate, DateOnly? endDate = null,
@@ -75,18 +76,19 @@ public sealed class SchoolBromcomClient : IDisposable
     CancellationToken cancellationToken = default) =>
     _client.GetStaffCoversAsync(_schoolId, startDate, endDate, cancellationToken);
 
-  /// <summary>Gets parental consent records, optionally filtered by consent type.</summary>
-  public Task<IReadOnlyList<ParentalConsent>> GetParentalConsentAsync(string? consentType = null, CancellationToken cancellationToken = default) =>
-    _client.GetParentalConsentAsync(_schoolId, consentType, cancellationToken);
+  /// <summary>Gets parental consent records, with optional consent type and student filters.</summary>
+  public Task<IReadOnlyList<ParentalConsent>> GetParentalConsentAsync(string? consentType = null,
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetParentalConsentAsync(_schoolId, consentType, studentIds, cancellationToken);
 
   /// <summary>Gets distinct behaviour event types.</summary>
   public Task<IReadOnlyList<BehaviourType>> GetBehaviourTypesAsync(CancellationToken cancellationToken = default) =>
     _client.GetBehaviourTypesAsync(_schoolId, cancellationToken);
 
-  /// <summary>Gets behaviour events for a date range.</summary>
+  /// <summary>Gets behaviour events for a date range, with an optional student filter.</summary>
   public Task<IReadOnlyList<BehaviourEvent>> GetBehaviourEventsAsync(DateOnly startDate, DateOnly? endDate = null,
-    CancellationToken cancellationToken = default) =>
-    _client.GetBehaviourEventsAsync(_schoolId, startDate, endDate, cancellationToken);
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetBehaviourEventsAsync(_schoolId, startDate, endDate, studentIds, cancellationToken);
 
   /// <summary>Creates or updates a behaviour event record.</summary>
   public Task SetBehaviourEventAsync(BehaviourEvent ev, CancellationToken cancellationToken = default) =>
@@ -101,10 +103,10 @@ public sealed class SchoolBromcomClient : IDisposable
     CancellationToken cancellationToken = default) =>
     _client.GetColumnsAsync(_schoolId, term, yearGroup, cancellationToken);
 
-  /// <summary>Gets assessment results for an academic year, with optional term and year group filters.</summary>
+  /// <summary>Gets assessment results for an academic year, with optional term, year group, and student filters.</summary>
   public Task<IReadOnlyList<AssessmentResult>> GetResultsAsync(int academicYearStart, string? term = null, int? yearGroup = null,
-    bool gradesOnly = false, CancellationToken cancellationToken = default) =>
-    _client.GetResultsAsync(_schoolId, academicYearStart, term, yearGroup, gradesOnly, cancellationToken);
+    bool gradesOnly = false, IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetResultsAsync(_schoolId, academicYearStart, term, yearGroup, gradesOnly, studentIds, cancellationToken);
 
   /// <summary>Releases the owned client.</summary>
   public void Dispose()

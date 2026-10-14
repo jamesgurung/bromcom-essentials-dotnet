@@ -107,13 +107,6 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `PersonId` | `int` |
 | `PhotoId` | `string` |
 
-### `PersonPhoto`
-
-| Property | Type |
-| --- | --- |
-| `Content` | `byte[]` |
-| `ContentType` | `string` |
-
 ### `Staff`
 
 | Property | Type |

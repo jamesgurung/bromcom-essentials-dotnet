@@ -43,10 +43,11 @@ public partial class BromcomClient
       .ToList();
   }
 
-  /// <summary>Gets club attendance records for a date range.</summary>
+  /// <summary>Gets club attendance records for a date range, with an optional student filter.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="startDate">The first attendance date in the range.</param>
   /// <param name="endDate">The last attendance date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
+  /// <param name="studentIds">Optional student identifiers to filter by.</param>
   /// <param name="cancellationToken">A token that can cancel the request.</param>
   /// <returns>A list of club attendance records ordered by club identifier, student identifier, and attendance date.</returns>
   /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive or <paramref name="endDate"/> precedes <paramref name="startDate"/>.</exception>
@@ -54,12 +55,13 @@ public partial class BromcomClient
   /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<ClubStudentAttendance>> GetClubAttendancesAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
-    CancellationToken cancellationToken = default)
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default)
   {
     ValidateRequest(schoolId);
     ValidateDateRange(startDate, endDate);
 
     var entityFilter = BuildDateRangeEntityFilter("attendanceDate", startDate, endDate ?? startDate);
+    entityFilter = AppendStudentEntityFilter(entityFilter, studentIds);
     var attendances = await GetAsync<ClubStudentAttendanceContract>("/v2/ClubStudentsAndAttendance", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
 
     return attendances.Select(row => new { Row = row, MembershipStartDate = ParseDateOnly(row.StudentClubMembershipStartDate) })

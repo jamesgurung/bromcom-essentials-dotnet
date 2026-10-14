@@ -22,9 +22,14 @@ public partial class BromcomClient
     };
 
     if (periodName is not null) filters.Add($"periodDisplayName='{EscapeEntityFilterValue(periodName)}'");
-    if (studentIds is { Count: > 0 }) filters.Add($"({string.Join(" or ", studentIds.Distinct().Select(id => $"studentID={id.ToString(CultureInfo.InvariantCulture)}"))})");
 
-    return string.Join(" and ", filters);
+    return AppendStudentEntityFilter(string.Join(" and ", filters), studentIds);
+  }
+
+  private static string AppendStudentEntityFilter(string entityFilter, IList<int>? studentIds)
+  {
+    if (studentIds is not { Count: > 0 }) return entityFilter;
+    return $"{entityFilter} and ({string.Join(" or ", studentIds.Distinct().Select(id => $"studentID={id.ToString(CultureInfo.InvariantCulture)}"))})";
   }
 
   private static string BuildDateRangeEntityFilter(string fieldName, DateOnly startDate, DateOnly endDate)

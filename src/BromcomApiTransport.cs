@@ -69,17 +69,13 @@ internal sealed class BromcomApiTransport : IDisposable
     using var response = await SendAsync(request, path, cancellationToken).ConfigureAwait(false);
   }
 
-  public async Task<PersonPhoto> GetPhotoAsync(string photoId, CancellationToken cancellationToken)
+  public async Task<byte[]> GetPhotoAsync(string photoId, CancellationToken cancellationToken)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
 
     using var request = new HttpRequestMessage(HttpMethod.Get, $"{PhotoUrl}?EncID={Uri.EscapeDataString(photoId)}");
     using var response = await SendAsync(request, "/Nucleus/Framework/Components/Controls/ImageDisplay.ashx", cancellationToken).ConfigureAwait(false);
-    return new PersonPhoto
-    {
-      Content = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false),
-      ContentType = response.Content.Headers.ContentType?.ToString() ?? string.Empty
-    };
+    return await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
   }
 
   private HttpRequestMessage CreateRequest(HttpMethod method, string url)

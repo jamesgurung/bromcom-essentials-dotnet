@@ -64,15 +64,6 @@ public sealed class PersonPhotoId
   public required string PhotoId { get; init; }
 }
 
-/// <summary>A person's photo and its response content type.</summary>
-public sealed class PersonPhoto
-{
-  /// <summary>Gets the image bytes returned by Bromcom.</summary>
-  public required byte[] Content { get; init; }
-  /// <summary>Gets the response Content-Type header, or an empty string when absent.</summary>
-  public required string ContentType { get; init; }
-}
-
 /// <summary>Parent or guardian contact details for a student.</summary>
 [DebuggerDisplay("{Name,nq} ({Relationship,nq})")]
 public sealed class ParentContact

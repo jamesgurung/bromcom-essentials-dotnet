@@ -22,11 +22,11 @@ public partial class BromcomClient
   /// <summary>Gets the image for an encrypted photo identifier.</summary>
   /// <param name="photoId">The encrypted photo identifier.</param>
   /// <param name="cancellationToken">A token that can cancel the request.</param>
-  /// <returns>The image bytes and content type returned by Bromcom.</returns>
+  /// <returns>The image bytes returned by Bromcom.</returns>
   /// <exception cref="ArgumentException">Thrown when <paramref name="photoId"/> is blank.</exception>
   /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
   /// <exception cref="HttpRequestException">Thrown when the image request returns an unsuccessful status code.</exception>
-  public Task<PersonPhoto> GetPhotoAsync(string photoId, CancellationToken cancellationToken = default)
+  public Task<byte[]> GetPhotoAsync(string photoId, CancellationToken cancellationToken = default)
   {
     ObjectDisposedException.ThrowIf(_disposed, this);
     ArgumentException.ThrowIfNullOrWhiteSpace(photoId);
