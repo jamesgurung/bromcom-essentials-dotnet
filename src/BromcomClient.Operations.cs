@@ -343,9 +343,9 @@ public partial class BromcomClient
     }).OrderBy(x => x.YearGroup).ThenBy(x => x.Term).ThenBy(x => x.Subject).ThenBy(x => x.Type).ThenBy(x => x.Id).ToList();
   }
 
-  /// <summary>Gets assessment results for an academic year, with optional term, year group, and student filters.</summary>
+  /// <summary>Gets assessment results with optional academic year, term, year group, and student filters.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
-  /// <param name="academicYearStart">The calendar year in which the academic year starts.</param>
+  /// <param name="academicYearStart">The calendar year in which the academic year starts, or null to include all years.</param>
   /// <param name="term">Optional term name to filter by.</param>
   /// <param name="yearGroup">Optional year group to filter by.</param>
   /// <param name="gradesOnly">Whether to return only grade results.</param>
@@ -356,7 +356,7 @@ public partial class BromcomClient
   /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
   /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
-  public async Task<IReadOnlyList<AssessmentResult>> GetResultsAsync(int schoolId, int academicYearStart, string? term = null, int? yearGroup = null,
+  public async Task<IReadOnlyList<AssessmentResult>> GetResultsAsync(int schoolId, int? academicYearStart = null, string? term = null, int? yearGroup = null,
     bool gradesOnly = false, IList<int>? studentIds = null, CancellationToken cancellationToken = default)
   {
     ValidateRequest(schoolId);

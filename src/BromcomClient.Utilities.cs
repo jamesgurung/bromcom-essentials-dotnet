@@ -11,7 +11,7 @@ public partial class BromcomClient
     return $"{dateFieldPrefix}startDate <='{today}' and ({dateFieldPrefix}endDate>='{today}' or isnull({dateFieldPrefix}endDate,'')='')";
   }
 
-  private static string BuildBasicAttendanceEntityFilter(DateOnly startDate, DateOnly endDate, string? periodName, IList<int>? studentIds)
+  private static string BuildBasicAttendanceEntityFilter(DateOnly startDate, DateOnly endDate, IList<string>? periodNames, IList<int>? studentIds)
   {
     var start = startDate.ToDateTime(TimeOnly.MinValue);
     var end = endDate.ToDateTime(new TimeOnly(23, 59, 59));
@@ -21,7 +21,7 @@ public partial class BromcomClient
       FormattableString.Invariant($"calendarStartDate<='{end:yyyy-MM-ddTHH:mm:ss}'")
     };
 
-    if (periodName is not null) filters.Add($"periodDisplayName='{EscapeEntityFilterValue(periodName)}'");
+    if (periodNames is { Count: > 0 }) filters.Add($"({string.Join(" or ", periodNames.Distinct().Select(name => $"periodDisplayName='{EscapeEntityFilterValue(name)}'"))})");
 
     return AppendStudentEntityFilter(string.Join(" and ", filters), studentIds);
   }
@@ -29,7 +29,8 @@ public partial class BromcomClient
   private static string AppendStudentEntityFilter(string entityFilter, IList<int>? studentIds)
   {
     if (studentIds is not { Count: > 0 }) return entityFilter;
-    return $"{entityFilter} and ({string.Join(" or ", studentIds.Distinct().Select(id => $"studentID={id.ToString(CultureInfo.InvariantCulture)}"))})";
+    var studentFilter = $"({string.Join(" or ", studentIds.Distinct().Select(id => $"studentID={id.ToString(CultureInfo.InvariantCulture)}"))})";
+    return entityFilter.Length == 0 ? studentFilter : $"{entityFilter} and {studentFilter}";
   }
 
   private static string BuildDateRangeEntityFilter(string fieldName, DateOnly startDate, DateOnly endDate)
@@ -39,15 +40,16 @@ public partial class BromcomClient
     return FormattableString.Invariant($"{fieldName}>='{start:yyyy-MM-ddTHH:mm:ss}' and {fieldName}<='{end:yyyy-MM-ddTHH:mm:ss}'");
   }
 
-  private static string BuildAssessmentResultsEntityFilter(int academicYearStart, string? term, int? yearGroup, bool gradesOnly)
+  private static string BuildAssessmentResultsEntityFilter(int? academicYearStart, string? term, int? yearGroup, bool gradesOnly)
   {
-    var start = new DateOnly(academicYearStart, 9, 1);
-    var endExclusive = new DateOnly(academicYearStart + 1, 9, 1);
-    var filters = new List<string>
+    var filters = new List<string>();
+    if (academicYearStart is int year)
     {
-      FormattableString.Invariant($"enteredDate>='{start:yyyy-MM-dd}'"),
-      FormattableString.Invariant($"enteredDate<'{endExclusive:yyyy-MM-dd}'")
-    };
+      var start = new DateOnly(year, 9, 1);
+      var endExclusive = new DateOnly(year + 1, 9, 1);
+      filters.Add(FormattableString.Invariant($"enteredDate>='{start:yyyy-MM-dd}'"));
+      filters.Add(FormattableString.Invariant($"enteredDate<'{endExclusive:yyyy-MM-dd}'"));
+    }
 
     if (term is not null) filters.Add($"termName='{EscapeEntityFilterValue(term)}'");
     if (yearGroup is not null) filters.Add($"yearGroupName='{yearGroup.Value.ToString(CultureInfo.InvariantCulture)}'");

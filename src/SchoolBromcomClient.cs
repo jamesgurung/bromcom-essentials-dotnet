@@ -56,9 +56,9 @@ public sealed class SchoolBromcomClient : IDisposable
     _client.GetAttendancesByWeekAsync(_schoolId, date, studentIds, cancellationToken);
 
   /// <summary>Gets period attendance marks for a date range, with optional period and student filters.</summary>
-  public Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(DateOnly startDate, DateOnly? endDate = null, string? periodName = null,
+  public Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(DateOnly startDate, DateOnly? endDate = null, IList<string>? periodNames = null,
     IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
-    _client.GetAttendancesAsync(_schoolId, startDate, endDate, periodName, studentIds, cancellationToken);
+    _client.GetAttendancesAsync(_schoolId, startDate, endDate, periodNames, studentIds, cancellationToken);
 
   /// <summary>Gets staff absences that overlap a date range.</summary>
   public Task<IReadOnlyList<StaffAbsence>> GetStaffAbsencesAsync(DateOnly startDate, DateOnly? endDate = null,
@@ -107,8 +107,8 @@ public sealed class SchoolBromcomClient : IDisposable
     CancellationToken cancellationToken = default) =>
     _client.GetColumnsAsync(_schoolId, term, yearGroup, cancellationToken);
 
-  /// <summary>Gets assessment results for an academic year, with optional term, year group, and student filters.</summary>
-  public Task<IReadOnlyList<AssessmentResult>> GetResultsAsync(int academicYearStart, string? term = null, int? yearGroup = null,
+  /// <summary>Gets assessment results with optional academic year, term, year group, and student filters.</summary>
+  public Task<IReadOnlyList<AssessmentResult>> GetResultsAsync(int? academicYearStart = null, string? term = null, int? yearGroup = null,
     bool gradesOnly = false, IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
     _client.GetResultsAsync(_schoolId, academicYearStart, term, yearGroup, gradesOnly, studentIds, cancellationToken);
 

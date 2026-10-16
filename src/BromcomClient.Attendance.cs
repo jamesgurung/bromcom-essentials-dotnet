@@ -53,7 +53,7 @@ public partial class BromcomClient
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="startDate">The first date in the range.</param>
   /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
-  /// <param name="periodName">Optional period display name to filter by.</param>
+  /// <param name="periodNames">Optional period display names to filter by.</param>
   /// <param name="studentIds">Optional student identifiers to filter by.</param>
   /// <param name="cancellationToken">A token that can cancel the request.</param>
   /// <returns>A list of period attendance marks ordered by student identifier, date, and period name.</returns>
@@ -61,13 +61,13 @@ public partial class BromcomClient
   /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
   /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
-  public async Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null, string? periodName = null,
+  public async Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null, IList<string>? periodNames = null,
     IList<int>? studentIds = null, CancellationToken cancellationToken = default)
   {
     ValidateRequest(schoolId);
     ValidateDateRange(startDate, endDate);
 
-    var entityFilter = BuildBasicAttendanceEntityFilter(startDate, endDate ?? startDate, periodName, studentIds);
+    var entityFilter = BuildBasicAttendanceEntityFilter(startDate, endDate ?? startDate, periodNames, studentIds);
     var attendances = await GetAsync<BasicAttendanceContract>("/v2/BasicAttendance", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
 
     return attendances.Select(row => new
