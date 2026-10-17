@@ -234,13 +234,17 @@ internal sealed class AssessmentColumnContract
 {
   public int? AssessmentTypeId { get; set; }
   public string? AssessmentTypeName { get; set; }
+  public int? TermId { get; set; }
   public string? TermName { get; set; }
+  public int? YearGroupId { get; set; }
   public string? YearGroupName { get; set; }
+  public int? SubjectId { get; set; }
   public string? SubjectName { get; set; }
 }
 
 internal sealed class AssessmentResultContract
 {
+  public int StudentResultId { get; set; }
   public int StudentId { get; set; }
   public string? AssessmentTypeName { get; set; }
   public string? Result { get; set; }
@@ -249,6 +253,33 @@ internal sealed class AssessmentResultContract
   public string? YearGroupName { get; set; }
   public string? SubjectName { get; set; }
   public string? IsGrade { get; set; }
+}
+
+internal sealed class AssessmentResultPostContract
+{
+  public int SchoolId { get; set; }
+  [JsonPropertyName("studentResultID")]
+  [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+  public int? StudentResultId { get; set; }
+  [JsonPropertyName("studentID")]
+  public int StudentId { get; set; }
+  [JsonPropertyName("assessmentTypeID")]
+  public int AssessmentTypeId { get; set; }
+  [JsonPropertyName("termID")]
+  public int TermId { get; set; }
+  [JsonPropertyName("yearGroupID")]
+  public int YearGroupId { get; set; }
+  [JsonPropertyName("subjectID")]
+  public int SubjectId { get; set; }
+  public string? Result { get; set; }
+  public string? ResultDate { get; set; }
+  public int ModifiedBy { get; set; }
+  public string? ModifiedDate { get; set; }
+  // Include explicit defaults for Bromcom's save procedure.
+  public string Notes { get; set; } = "";
+  public string ForeColour { get; set; } = "";
+  public string BackgroundColour { get; set; } = "";
+  public bool IsProtected { get; set; }
 }
 
 internal sealed class StudentAttendanceByWeekContract

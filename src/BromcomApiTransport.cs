@@ -93,8 +93,11 @@ internal sealed class BromcomApiTransport : IDisposable
     if (response.IsSuccessStatusCode) return response;
 
     var statusCode = response.StatusCode;
-    response.Dispose();
-    throw new HttpRequestException($"Request to '{path}' failed with status {(int)statusCode} ({statusCode}).", null, statusCode);
+    using (response)
+    {
+      var error = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+      throw new HttpRequestException($"Request to '{path}' failed with status {(int)statusCode} ({statusCode}). {error}".TrimEnd(), null, statusCode);
+    }
   }
 
   private static void ValidatePath(string path)

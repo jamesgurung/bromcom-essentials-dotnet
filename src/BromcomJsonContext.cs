@@ -23,6 +23,7 @@ namespace BromcomEssentials;
 [JsonSerializable(typeof(ApiResponse<SubjectContract>))]
 [JsonSerializable(typeof(ApiResponse<AssessmentColumnContract>))]
 [JsonSerializable(typeof(ApiResponse<AssessmentResultContract>))]
+[JsonSerializable(typeof(AssessmentResultPostContract))]
 [JsonSerializable(typeof(ApiResponse<StudentAttendanceByWeekContract>))]
 [JsonSerializable(typeof(ApiResponse<BasicAttendanceContract>))]
 [JsonSerializable(typeof(ApiResponse<ClubDetailsContract>))]

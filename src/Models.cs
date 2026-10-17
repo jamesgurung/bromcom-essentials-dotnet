@@ -458,10 +458,16 @@ public sealed class AssessmentColumn
   public int? Id { get; init; }
   /// <summary>Gets the assessment type.</summary>
   public required string Type { get; init; }
+  /// <summary>Gets the Bromcom term identifier.</summary>
+  public int? TermId { get; init; }
   /// <summary>Gets the term associated with the assessment column.</summary>
   public string? Term { get; init; }
+  /// <summary>Gets the Bromcom year group identifier.</summary>
+  public int? YearGroupId { get; init; }
   /// <summary>Gets the year group associated with the assessment column.</summary>
   public int? YearGroup { get; init; }
+  /// <summary>Gets the Bromcom subject identifier.</summary>
+  public int? SubjectId { get; init; }
   /// <summary>Gets the subject associated with the assessment column.</summary>
   public string? Subject { get; init; }
 }
@@ -470,6 +476,8 @@ public sealed class AssessmentColumn
 [DebuggerDisplay("{StudentId}: {Type,nq} {Subject,nq} = {Result,nq}")]
 public sealed class AssessmentResult
 {
+  /// <summary>Gets the Bromcom student result identifier.</summary>
+  public int Id { get; init; }
   /// <summary>Gets the Bromcom student identifier.</summary>
   public int StudentId { get; init; }
   /// <summary>Gets the assessment type.</summary>
@@ -482,4 +490,26 @@ public sealed class AssessmentResult
   public string? Subject { get; init; }
   /// <summary>Gets the assessment result value.</summary>
   public required string Result { get; init; }
+}
+
+/// <summary>An assessment result to create or update.</summary>
+[DebuggerDisplay("{StudentId}: {AssessmentTypeId} = {Result,nq}")]
+public sealed class AssessmentResultRequest
+{
+  /// <summary>The existing student result identifier, or null to create a new result.</summary>
+  public int? Id { get; set; }
+  /// <summary>The Bromcom student identifier.</summary>
+  public required int StudentId { get; set; }
+  /// <summary>The Bromcom subject identifier.</summary>
+  public required int SubjectId { get; set; }
+  /// <summary>The Bromcom year group identifier.</summary>
+  public required int YearGroupId { get; set; }
+  /// <summary>The Bromcom term identifier.</summary>
+  public required int TermId { get; set; }
+  /// <summary>The Bromcom assessment type identifier.</summary>
+  public required int AssessmentTypeId { get; set; }
+  /// <summary>The non-blank assessment result value.</summary>
+  public required string Result { get; set; }
+  /// <summary>The Bromcom identifier of the person modifying the result.</summary>
+  public required int ModifiedBy { get; set; }
 }

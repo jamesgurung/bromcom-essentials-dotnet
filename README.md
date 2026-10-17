@@ -277,20 +277,37 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | --- | --- |
 | `Id` | `int?` |
 | `Type` | `string` |
+| `TermId` | `int?` |
 | `Term` | `string?` |
+| `YearGroupId` | `int?` |
 | `YearGroup` | `int?` |
+| `SubjectId` | `int?` |
 | `Subject` | `string?` |
 
 ### `AssessmentResult`
 
 | Property | Type |
 | --- | --- |
+| `Id` | `int` |
 | `StudentId` | `int` |
 | `Type` | `string` |
 | `YearGroup` | `int?` |
 | `Term` | `string?` |
 | `Subject` | `string?` |
 | `Result` | `string` |
+
+### `AssessmentResultRequest`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int?` |
+| `StudentId` | `int` |
+| `SubjectId` | `int` |
+| `YearGroupId` | `int` |
+| `TermId` | `int` |
+| `AssessmentTypeId` | `int` |
+| `Result` | `string` |
+| `ModifiedBy` | `int` |
 
 ### `StudentWeeklyAttendance`
 
@@ -341,26 +358,28 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 
 ## Upstream API endpoints
 
-* `/v2/AssociationAssessmentColumns`
-* `/v2/AssociationAssessmentResultsRaw`
-* `/v2/BasicAttendance`
-* `/v2/BehaviourEventRecords`
-* `/v2/BehaviourEvents`
-* `/v2/ClubDetails`
-* `/v2/ClubStudentsAndAttendance`
-* `/v2/Departments`
-* `/v2/DepartmentTeachers`
-* `/v2/PersonPhotos`
-* `/v2/RoomCovers`
-* `/v2/Staff`
-* `/v2/StaffAbsences`
-* `/v2/StaffCovers`
-* `/v2/StaffLineManagers`
-* `/v2/StudentAttendanceByWeek`
-* `/v2/StudentDetentions`
-* `/v2/StudentFlatView`
-* `/v2/StudentParentalConsent`
-* `/v2/StudentTimetables`
-* `/v2/Subjects`
-* `/v2/Timetable`
-* `/v2/YearGroupSubjectStudents`
+* `POST /v2/AssessmentResults`
+* `GET /v2/AssociationAssessmentColumns`
+* `GET /v2/AssociationAssessmentResultsRaw`
+* `GET /v2/BasicAttendance`
+* `GET /v2/BehaviourEventRecords`
+* `POST /v2/BehaviourEventRecords`
+* `GET /v2/BehaviourEvents`
+* `GET /v2/ClubDetails`
+* `GET /v2/ClubStudentsAndAttendance`
+* `GET /v2/Departments`
+* `GET /v2/DepartmentTeachers`
+* `GET /v2/PersonPhotos`
+* `GET /v2/RoomCovers`
+* `GET /v2/Staff`
+* `GET /v2/StaffAbsences`
+* `GET /v2/StaffCovers`
+* `GET /v2/StaffLineManagers`
+* `GET /v2/StudentAttendanceByWeek`
+* `GET /v2/StudentDetentions`
+* `GET /v2/StudentFlatView`
+* `GET /v2/StudentParentalConsent`
+* `GET /v2/StudentTimetables`
+* `GET /v2/Subjects`
+* `GET /v2/Timetable`
+* `GET /v2/YearGroupSubjectStudents`

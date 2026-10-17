@@ -337,8 +337,11 @@ public partial class BromcomClient
     {
       Id = row.AssessmentTypeId,
       Type = CleanString(row.AssessmentTypeName)!,
+      TermId = row.TermId,
       Term = CleanString(row.TermName),
+      YearGroupId = row.YearGroupId,
       YearGroup = ParseNullableInt(row.YearGroupName),
+      SubjectId = row.SubjectId,
       Subject = CleanString(row.SubjectName)
     }).OrderBy(x => x.YearGroup).ThenBy(x => x.Term).ThenBy(x => x.Subject).ThenBy(x => x.Type).ThenBy(x => x.Id).ToList();
   }
@@ -369,6 +372,7 @@ public partial class BromcomClient
 
     return results.Where(row => !string.IsNullOrWhiteSpace(row.AssessmentTypeName) && !string.IsNullOrWhiteSpace(row.Result)).Select(row => new AssessmentResult
     {
+      Id = row.StudentResultId,
       StudentId = row.StudentId,
       Type = CleanString(row.AssessmentTypeName)!,
       YearGroup = ParseNullableInt(row.YearGroupName),
@@ -376,5 +380,40 @@ public partial class BromcomClient
       Subject = CleanString(row.SubjectName),
       Result = CleanString(row.Result)!
     }).OrderBy(r => r.StudentId).ThenBy(r => r.YearGroup).ThenBy(r => r.Term).ThenBy(r => r.Subject).ThenBy(r => r.Result).ToList();
+  }
+
+  /// <summary>Creates or updates an assessment result with the current UTC result and modification dates.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="result">The assessment result to send to Bromcom.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A task that completes when the result has been accepted by the API.</returns>
+  /// <exception cref="ArgumentNullException">Thrown when <paramref name="result"/> or its result value is null.</exception>
+  /// <exception cref="ArgumentException">Thrown when the result value is empty or consists only of whitespace.</exception>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  public async Task SetResultAsync(int schoolId, AssessmentResultRequest result, CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+    ArgumentNullException.ThrowIfNull(result);
+    ArgumentException.ThrowIfNullOrWhiteSpace(result.Result);
+
+    var resultDate = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
+    var payload = new AssessmentResultPostContract
+    {
+      SchoolId = schoolId,
+      StudentResultId = result.Id,
+      StudentId = result.StudentId,
+      AssessmentTypeId = result.AssessmentTypeId,
+      TermId = result.TermId,
+      YearGroupId = result.YearGroupId,
+      SubjectId = result.SubjectId,
+      Result = result.Result,
+      ResultDate = resultDate,
+      ModifiedBy = result.ModifiedBy,
+      ModifiedDate = resultDate
+    };
+
+    await _transport.PostAsync("/v2/AssessmentResults", payload, cancellationToken).ConfigureAwait(false);
   }
 }

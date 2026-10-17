@@ -112,6 +112,10 @@ public sealed class SchoolBromcomClient : IDisposable
     bool gradesOnly = false, IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
     _client.GetResultsAsync(_schoolId, academicYearStart, term, yearGroup, gradesOnly, studentIds, cancellationToken);
 
+  /// <summary>Creates or updates an assessment result with the current UTC result and modification dates.</summary>
+  public Task SetResultAsync(AssessmentResultRequest result, CancellationToken cancellationToken = default) =>
+    _client.SetResultAsync(_schoolId, result, cancellationToken);
+
   /// <summary>Releases the owned client.</summary>
   public void Dispose()
   {
