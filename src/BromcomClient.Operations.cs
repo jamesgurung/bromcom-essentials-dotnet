@@ -4,6 +4,39 @@ namespace BromcomEssentials;
 
 public partial class BromcomClient
 {
+  /// <summary>Gets user defined field data, with optional entity type, identifier, field type, and value filters.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="entityType">Optional entity type to match exactly.</param>
+  /// <param name="id">Optional entity identifier to filter by.</param>
+  /// <param name="type">Optional user defined field type name to match exactly.</param>
+  /// <param name="value">Optional user defined field value to match exactly.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of user defined field data in the order returned by the API.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<UdfData>> GetUdfDataAsync(int schoolId, string? entityType = null, int? id = null,
+    string? type = null, string? value = null, CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var filters = new List<string>();
+    if (entityType is not null) filters.Add($"entityType='{EscapeEntityFilterValue(entityType)}'");
+    if (id is not null) filters.Add($"entityID={id.Value.ToString(CultureInfo.InvariantCulture)}");
+    if (type is not null) filters.Add($"userDefinedFieldTypeName='{EscapeEntityFilterValue(type)}'");
+    if (value is not null) filters.Add($"userDefinedFieldValue='{EscapeEntityFilterValue(value)}'");
+    var data = await GetAsync<UdfDataContract>("/v2/UserDefinedFieldsData", schoolId, string.Join(" and ", filters), null, cancellationToken).ConfigureAwait(false);
+
+    return data.Select(row => new UdfData
+    {
+      EntityType = row.EntityType,
+      Id = row.EntityId,
+      Type = row.UserDefinedFieldTypeName,
+      Value = row.UserDefinedFieldValue
+    }).ToList();
+  }
+
   /// <summary>Gets staff absences that overlap a date range.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="startDate">The first date in the range.</param>

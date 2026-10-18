@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, photo, club, detention, department, attendance, cover, consent, behaviour, and assessment data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, photo, club, detention, department, attendance, cover, consent, behaviour, assessment, and user defined field data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -43,6 +43,7 @@ var columns = await client.GetColumnsAsync(term: "Spring", yearGroup: 7);
 var results = await client.GetResultsAsync(2025, term: "Spring", yearGroup: 7, gradesOnly: true);
 var attendances = await client.GetAttendancesByWeekAsync(today);
 var periodAttendances = await client.GetAttendancesAsync(today);
+var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type: "Example field", value: "Example value");
 ```
 
 ## Data model
@@ -100,13 +101,6 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `Room` | `string?` |
 | `TeacherCode` | `string?` |
 
-### `PersonPhotoId`
-
-| Property | Type |
-| --- | --- |
-| `PersonId` | `int` |
-| `PhotoId` | `string` |
-
 ### `Staff`
 
 | Property | Type |
@@ -130,6 +124,13 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `Period` | `string?` |
 | `Class` | `string?` |
 | `Room` | `string?` |
+
+### `PersonPhotoId`
+
+| Property | Type |
+| --- | --- |
+| `PersonId` | `int` |
+| `PhotoId` | `string` |
 
 ### `Club`
 
@@ -356,6 +357,15 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 | `NotPossibleAttendance` |
 | `Invalid` |
 
+### `UdfData`
+
+| Property | Type |
+| --- | --- |
+| `EntityType` | `string?` |
+| `Id` | `int` |
+| `Type` | `string?` |
+| `Value` | `string?` |
+
 ## Upstream API endpoints
 
 * `POST /v2/AssessmentResults`
@@ -382,4 +392,5 @@ var periodAttendances = await client.GetAttendancesAsync(today);
 * `GET /v2/StudentTimetables`
 * `GET /v2/Subjects`
 * `GET /v2/Timetable`
+* `GET /v2/UserDefinedFieldsData`
 * `GET /v2/YearGroupSubjectStudents`

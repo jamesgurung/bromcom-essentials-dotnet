@@ -60,6 +60,11 @@ public sealed class SchoolBromcomClient : IDisposable
     IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
     _client.GetAttendancesAsync(_schoolId, startDate, endDate, periodNames, studentIds, cancellationToken);
 
+  /// <summary>Gets user defined field data, with optional entity type, identifier, field type, and value filters.</summary>
+  public Task<IReadOnlyList<UdfData>> GetUdfDataAsync(string? entityType = null, int? id = null, string? type = null,
+    string? value = null, CancellationToken cancellationToken = default) =>
+    _client.GetUdfDataAsync(_schoolId, entityType, id, type, value, cancellationToken);
+
   /// <summary>Gets staff absences that overlap a date range.</summary>
   public Task<IReadOnlyList<StaffAbsence>> GetStaffAbsencesAsync(DateOnly startDate, DateOnly? endDate = null,
     CancellationToken cancellationToken = default) =>

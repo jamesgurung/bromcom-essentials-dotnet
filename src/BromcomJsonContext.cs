@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 namespace BromcomEssentials;
 
 [JsonSourceGenerationOptions(JsonSerializerDefaults.Web, PropertyNameCaseInsensitive = true)]
+[JsonSerializable(typeof(ApiResponse<UdfDataContract>))]
 [JsonSerializable(typeof(ApiResponse<StudentFlatViewContract>))]
 [JsonSerializable(typeof(ApiResponse<PersonPhotoContract>))]
 [JsonSerializable(typeof(ApiResponse<YearGroupSubjectStudentContract>))]

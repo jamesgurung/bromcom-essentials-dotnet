@@ -2,6 +2,20 @@ using System.Diagnostics;
 
 namespace BromcomEssentials;
 
+/// <summary>A user defined field value for an entity.</summary>
+[DebuggerDisplay("{EntityType,nq} {Id}: {Type,nq} = {Value,nq}")]
+public sealed class UdfData
+{
+  /// <summary>Gets the entity type.</summary>
+  public string? EntityType { get; init; }
+  /// <summary>Gets the Bromcom entity identifier.</summary>
+  public int Id { get; init; }
+  /// <summary>Gets the user defined field type name.</summary>
+  public string? Type { get; init; }
+  /// <summary>Gets the user defined field value.</summary>
+  public string? Value { get; init; }
+}
+
 /// <summary>Basic student details and optional related class, timetable, and parent contact data.</summary>
 [DebuggerDisplay("{Forename,nq} {Surname,nq} {TutorGroup,nq}")]
 public sealed class Student

@@ -44,6 +44,7 @@ var columns = await school.GetColumnsAsync();
 var results = await school.GetResultsAsync(2026, term: "Spring", yearGroup: 7, gradesOnly: true);
 var attendancesByWeek = await school.GetAttendancesByWeekAsync(today);
 var periodAttendances = await school.GetAttendancesAsync(today);
+var udfData = await school.GetUdfDataAsync();
 
 Console.WriteLine($"Students: {students.Count}");
 Console.WriteLine($"Staff: {staff.Count}");
@@ -63,3 +64,4 @@ Console.WriteLine($"Columns: {columns.Count}");
 Console.WriteLine($"Results: {results.Count}");
 Console.WriteLine($"Attendances by week: {attendancesByWeek.Count}");
 Console.WriteLine($"Period attendances: {periodAttendances.Count}");
+Console.WriteLine($"User defined field data: {udfData.Count}");
