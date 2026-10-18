@@ -2,6 +2,16 @@ using System.Diagnostics;
 
 namespace BromcomEssentials;
 
+/// <summary>A class configured in Bromcom.</summary>
+[DebuggerDisplay("{Id}: {Name,nq}")]
+public sealed class SchoolClass
+{
+  /// <summary>Gets the Bromcom class identifier.</summary>
+  public int Id { get; init; }
+  /// <summary>Gets the class name.</summary>
+  public string? Name { get; init; }
+}
+
 /// <summary>A user defined field value for an entity.</summary>
 [DebuggerDisplay("{EntityType,nq} {Id}: {Type,nq} = {Value,nq}")]
 public sealed class UdfData

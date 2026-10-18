@@ -28,6 +28,7 @@ var today = DateOnly.FromDateTime(DateTime.Today);
 
 var students = await school.GetStudentsAsync(includeClasses: true, includeTimetable: true);
 var staff = await school.GetStaffAsync(includeClassesAndTimetable: true);
+var classes = await school.GetClassesAsync();
 var photoIds = await school.GetPhotoIdsAsync();
 var photo = photoIds.Count > 0 ? await school.GetPhotoAsync(photoIds[0].PhotoId) : null;
 var clubs = await school.GetClubsAsync();
@@ -48,6 +49,7 @@ var udfData = await school.GetUdfDataAsync();
 
 Console.WriteLine($"Students: {students.Count}");
 Console.WriteLine($"Staff: {staff.Count}");
+Console.WriteLine($"Classes: {classes.Count}");
 Console.WriteLine($"Photo IDs: {photoIds.Count}");
 Console.WriteLine($"First photo bytes: {photo?.Length ?? 0}");
 Console.WriteLine($"Clubs: {clubs.Count}");

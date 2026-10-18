@@ -8,6 +8,12 @@ internal sealed class ApiResponse<TData>
   public List<TData>? Data { get; set; }
 }
 
+internal sealed class ClassContract
+{
+  public int ClassId { get; set; }
+  public string? ClassName { get; set; }
+}
+
 internal sealed class UdfDataContract
 {
   public string? EntityType { get; set; }

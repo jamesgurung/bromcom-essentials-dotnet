@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, photo, club, detention, department, attendance, cover, consent, behaviour, assessment, and user defined field data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, class, photo, club, detention, department, attendance, cover, consent, behaviour, assessment, and user defined field data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -27,6 +27,7 @@ var today = DateOnly.FromDateTime(DateTime.Today);
 
 var students = await client.GetStudentsAsync(includeClasses: true, includeTimetable: true);
 var staff = await client.GetStaffAsync(includeClassesAndTimetable: true);
+var classes = await client.GetClassesAsync();
 var photoIds = await client.GetPhotoIdsAsync();
 var photo = photoIds.Count > 0 ? await client.GetPhotoAsync(photoIds[0].PhotoId) : null;
 var clubs = await client.GetClubsAsync();
@@ -124,6 +125,13 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 | `Period` | `string?` |
 | `Class` | `string?` |
 | `Room` | `string?` |
+
+### `SchoolClass`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `Name` | `string?` |
 
 ### `PersonPhotoId`
 
@@ -375,6 +383,7 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 * `GET /v2/BehaviourEventRecords`
 * `POST /v2/BehaviourEventRecords`
 * `GET /v2/BehaviourEvents`
+* `GET /v2/Classes`
 * `GET /v2/ClubDetails`
 * `GET /v2/ClubStudentsAndAttendance`
 * `GET /v2/Departments`

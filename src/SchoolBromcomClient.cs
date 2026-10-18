@@ -20,6 +20,10 @@ public sealed class SchoolBromcomClient : IDisposable
     _schoolId = schoolId;
   }
 
+  /// <summary>Gets classes active at the current UTC date and time, including classes with no end date.</summary>
+  public Task<IReadOnlyList<SchoolClass>> GetClassesAsync(CancellationToken cancellationToken = default) =>
+    _client.GetClassesAsync(_schoolId, cancellationToken);
+
   /// <summary>Gets students, with optional class and timetable data.</summary>
   public Task<IReadOnlyList<Student>> GetStudentsAsync(bool includeClasses = false, bool includeTimetable = false,
     CancellationToken cancellationToken = default) =>

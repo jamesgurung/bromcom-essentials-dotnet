@@ -4,6 +4,29 @@ namespace BromcomEssentials;
 
 public partial class BromcomClient
 {
+  /// <summary>Gets classes active at the current UTC date and time, including classes with no end date.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of classes ordered by name and identifier.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<SchoolClass>> GetClassesAsync(int schoolId, CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var now = DateTime.UtcNow;
+    var entityFilter = FormattableString.Invariant($"startDate<='{now:yyyy-MM-ddTHH:mm:ss}' and (endDate>='{now:yyyy-MM-ddTHH:mm:ss}' or isnull(endDate,'')='')");
+    var classes = await GetAsync<ClassContract>("/v2/Classes", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+
+    return classes.Select(row => new SchoolClass
+    {
+      Id = row.ClassId,
+      Name = CleanClassName(row.ClassName)
+    }).OrderBy(x => x.Name).ThenBy(x => x.Id).ToList();
+  }
+
   /// <summary>Gets user defined field data, with optional entity type, identifier, field type, and value filters.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="entityType">Optional entity type to match exactly.</param>
