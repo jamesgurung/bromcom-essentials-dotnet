@@ -442,6 +442,8 @@ public sealed class BehaviourEvent
   public string? Comment { get; init; }
   /// <summary>Gets the internal event comment.</summary>
   public string? InternalComment { get; init; }
+  /// <summary>Gets classification descriptions, or null when not requested. Empty when none are available.</summary>
+  public List<string>? Classifications { get; init; }
 }
 
 /// <summary>A department with subjects and staff membership.</summary>

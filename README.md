@@ -38,7 +38,7 @@ var roomCovers = await client.GetRoomCoversAsync(today);
 var staffCovers = await client.GetStaffCoversAsync(today);
 var parentalConsents = await client.GetParentalConsentAsync(consentType: "U");
 var behaviourTypes = await client.GetBehaviourTypesAsync();
-var behaviourEvents = await client.GetBehaviourEventsAsync(today);
+var behaviourEvents = await client.GetBehaviourEventsAsync(today, includeClassifications: true);
 var departments = await client.GetDepartmentsAsync();
 var columns = await client.GetColumnsAsync(term: "Spring", yearGroup: 7);
 var results = await client.GetResultsAsync(2025, term: "Spring", yearGroup: 7, gradesOnly: true);
@@ -260,6 +260,7 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 | `Points` | `int` |
 | `Comment` | `string?` |
 | `InternalComment` | `string?` |
+| `Classifications` | `List<string>?` |
 
 ### `Department`
 
@@ -380,6 +381,7 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 * `GET /v2/AssociationAssessmentColumns`
 * `GET /v2/AssociationAssessmentResultsRaw`
 * `GET /v2/BasicAttendance`
+* `GET /v2/BehaviourEventRecordClassifications`
 * `GET /v2/BehaviourEventRecords`
 * `POST /v2/BehaviourEventRecords`
 * `GET /v2/BehaviourEvents`

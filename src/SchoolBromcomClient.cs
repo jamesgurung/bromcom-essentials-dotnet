@@ -100,8 +100,8 @@ public sealed class SchoolBromcomClient : IDisposable
 
   /// <summary>Gets behaviour events for a date range, with an optional student filter.</summary>
   public Task<IReadOnlyList<BehaviourEvent>> GetBehaviourEventsAsync(DateOnly startDate, DateOnly? endDate = null,
-    IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
-    _client.GetBehaviourEventsAsync(_schoolId, startDate, endDate, studentIds, cancellationToken);
+    IList<int>? studentIds = null, bool includeClassifications = false, CancellationToken cancellationToken = default) =>
+    _client.GetBehaviourEventsAsync(_schoolId, startDate, endDate, studentIds, includeClassifications, cancellationToken);
 
   /// <summary>Creates or updates a behaviour event record.</summary>
   public Task SetBehaviourEventAsync(BehaviourEvent ev, CancellationToken cancellationToken = default) =>

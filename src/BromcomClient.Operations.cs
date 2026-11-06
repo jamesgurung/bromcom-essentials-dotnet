@@ -265,6 +265,7 @@ public partial class BromcomClient
   /// <param name="startDate">The first date in the range.</param>
   /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
   /// <param name="studentIds">Optional student identifiers to filter by.</param>
+  /// <param name="includeClassifications">Whether to include classification descriptions for each event.</param>
   /// <param name="cancellationToken">A token that can cancel the request.</param>
   /// <returns>A list of behaviour event records ordered by date, student identifier, and event identifier.</returns>
   /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive or <paramref name="endDate"/> precedes <paramref name="startDate"/>.</exception>
@@ -272,7 +273,7 @@ public partial class BromcomClient
   /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<BehaviourEvent>> GetBehaviourEventsAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
-    IList<int>? studentIds = null, CancellationToken cancellationToken = default)
+    IList<int>? studentIds = null, bool includeClassifications = false, CancellationToken cancellationToken = default)
   {
     ValidateRequest(schoolId);
     ValidateDateRange(startDate, endDate);
@@ -280,6 +281,21 @@ public partial class BromcomClient
     var entityFilter = BuildDateRangeEntityFilter("eventDate", startDate, endDate ?? startDate);
     entityFilter = AppendStudentEntityFilter(entityFilter, studentIds);
     var events = await GetAsync<BehaviourEventContract>("/v2/BehaviourEventRecords", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+    var classificationsByEventId = new Dictionary<int, List<string>>();
+
+    if (includeClassifications && events.Count > 0)
+    {
+      var eventIds = events.Select(row => row.EventRecordId).Distinct().ToArray();
+      var classificationFilters = studentIds is { Count: > 0 }
+        ? eventIds.Chunk(50).Select(ids => $"({string.Join(" or ", ids.Select(id => FormattableString.Invariant($"eventRecordID={id}")))})")
+        : new[] { FormattableString.Invariant($"eventRecordID>={eventIds.Min()} and eventRecordID<={eventIds.Max()}") };
+      var classifications = new List<BehaviourEventClassificationContract>();
+      foreach (var filter in classificationFilters)
+        classifications.AddRange(await GetAsync<BehaviourEventClassificationContract>("/v2/BehaviourEventRecordClassifications", schoolId, filter, null, cancellationToken).ConfigureAwait(false));
+
+      classificationsByEventId = classifications.Where(row => !string.IsNullOrWhiteSpace(row.ClassificationDescription))
+        .GroupBy(row => row.EventRecordId).ToDictionary(g => g.Key, g => g.Select(row => CleanString(row.ClassificationDescription)!).ToList());
+    }
 
     return events.Select(row => new { Row = row, DateTime = ParseDateTime(row.EventDate) }).Where(x => x.DateTime is not null).Select(x => new BehaviourEvent
     {
@@ -292,7 +308,8 @@ public partial class BromcomClient
       Date = x.DateTime.GetValueOrDefault(),
       Points = x.Row.Adjustment,
       Comment = CleanString(x.Row.Comment),
-      InternalComment = CleanString(x.Row.InternalComment)
+      InternalComment = CleanString(x.Row.InternalComment),
+      Classifications = includeClassifications ? classificationsByEventId.GetValueOrDefault(x.Row.EventRecordId) ?? [] : null
     }).OrderBy(x => x.Date).ThenBy(x => x.StudentId).ThenBy(x => x.Id).ToList();
   }
 
