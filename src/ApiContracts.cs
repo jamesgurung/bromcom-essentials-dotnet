@@ -163,6 +163,13 @@ internal sealed class BehaviourTypeContract
   public string? EventDescription { get; set; }
 }
 
+internal sealed class BehaviourOutcomeContract
+{
+  public int OutcomeId { get; set; }
+  public string? OutcomeName { get; set; }
+  public string? OutcomeDescription { get; set; }
+}
+
 internal class BehaviourEventContract
 {
   public int EventRecordId { get; set; }
@@ -191,6 +198,12 @@ internal sealed class BehaviourEventClassificationContract
 {
   public int EventRecordId { get; set; }
   public string? ClassificationDescription { get; set; }
+}
+
+internal sealed class BehaviourEventOutcomeContract
+{
+  public int EventRecordId { get; set; }
+  public string? OutcomeDescription { get; set; }
 }
 
 internal sealed class TimetableContract
@@ -307,6 +320,13 @@ internal sealed class AssessmentResultPostContract
   public bool IsProtected { get; set; }
 }
 
+internal sealed class CalendarContract
+{
+  public int CalendarId { get; set; }
+  public string? StartDate { get; set; }
+  public string? EndDate { get; set; }
+}
+
 internal sealed class StudentAttendanceByWeekContract
 {
   public int StudentId { get; set; }
@@ -329,6 +349,19 @@ internal sealed class BasicAttendanceContract
   public string? Mark { get; set; }
   public string? PeriodDisplayName { get; set; }
   public string? AttendanceComment { get; set; }
+}
+
+internal sealed class AttendancePostContract
+{
+  public int SchoolId { get; set; }
+  public int StudentId { get; set; }
+  public int CalendarId { get; set; }
+  public string? AttendanceMark { get; set; }
+  public int MinutesLate { get; set; }
+  public string? AttendanceComment { get; set; }
+  public int AttendanceTakenBy { get; set; }
+  public string? AttendanceTakenDateTime { get; set; }
+  public string? NatureOfActivity { get; set; }
 }
 
 internal sealed class ClubDetailsContract

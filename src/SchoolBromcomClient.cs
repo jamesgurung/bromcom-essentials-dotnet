@@ -54,6 +54,11 @@ public sealed class SchoolBromcomClient : IDisposable
     IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
     _client.GetClubAttendancesAsync(_schoolId, startDate, endDate, studentIds, cancellationToken);
 
+  /// <summary>Gets attendance periods starting within a date range, with no upper bound when the end date is omitted.</summary>
+  public Task<IReadOnlyList<AttendancePeriod>> GetAttendancePeriodsAsync(DateOnly startDate, DateOnly? endDate = null,
+    CancellationToken cancellationToken = default) =>
+    _client.GetAttendancePeriodsAsync(_schoolId, startDate, endDate, cancellationToken);
+
   /// <summary>Gets morning and afternoon attendance marks for the week containing a date, with an optional student filter.</summary>
   public Task<IReadOnlyList<StudentWeeklyAttendance>> GetAttendancesByWeekAsync(DateOnly date,
     IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
@@ -63,6 +68,11 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<PeriodAttendance>> GetAttendancesAsync(DateOnly startDate, DateOnly? endDate = null, IList<string>? periodNames = null,
     IList<int>? studentIds = null, CancellationToken cancellationToken = default) =>
     _client.GetAttendancesAsync(_schoolId, startDate, endDate, periodNames, studentIds, cancellationToken);
+
+  /// <summary>Sets an attendance mark with the current UTC date and time and a blank nature of activity.</summary>
+  public Task SetAttendanceAsync(int studentId, int calendarId, string? attendanceMark, int minutesLate,
+    string? attendanceComment, int attendanceTakenBy, CancellationToken cancellationToken = default) =>
+    _client.SetAttendanceAsync(_schoolId, studentId, calendarId, attendanceMark, minutesLate, attendanceComment, attendanceTakenBy, cancellationToken);
 
   /// <summary>Gets user defined field data, with optional entity type, identifier, field type, and value filters.</summary>
   public Task<IReadOnlyList<UdfData>> GetUdfDataAsync(string? entityType = null, int? id = null, string? type = null,
@@ -98,11 +108,15 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<BehaviourType>> GetBehaviourTypesAsync(CancellationToken cancellationToken = default) =>
     _client.GetBehaviourTypesAsync(_schoolId, cancellationToken);
 
+  /// <summary>Gets active behaviour outcomes.</summary>
+  public Task<IReadOnlyList<BehaviourOutcome>> GetBehaviourOutcomesAsync(CancellationToken cancellationToken = default) =>
+    _client.GetBehaviourOutcomesAsync(_schoolId, cancellationToken);
+
   /// <summary>Gets behaviour events for a date range, with optional student, event type, and processing status filters.</summary>
   public Task<IReadOnlyList<BehaviourEvent>> GetBehaviourEventsAsync(DateOnly startDate, DateOnly? endDate = null,
     IList<int>? studentIds = null, IList<int>? eventTypeIds = null, bool? isProcessed = null,
-    bool includeClassifications = false, CancellationToken cancellationToken = default) =>
-    _client.GetBehaviourEventsAsync(_schoolId, startDate, endDate, studentIds, eventTypeIds, isProcessed, includeClassifications, cancellationToken);
+    bool includeClassifications = false, bool includeOutcomes = false, CancellationToken cancellationToken = default) =>
+    _client.GetBehaviourEventsAsync(_schoolId, startDate, endDate, studentIds, eventTypeIds, isProcessed, includeClassifications, includeOutcomes, cancellationToken);
 
   /// <summary>Creates or updates a behaviour event record.</summary>
   public Task SetBehaviourEventAsync(BehaviourEvent ev, CancellationToken cancellationToken = default) =>

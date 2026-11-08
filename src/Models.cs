@@ -184,6 +184,18 @@ public sealed class ClubStudentAttendance
   public DateOnly? AttendanceDate { get; init; }
 }
 
+/// <summary>An attendance period in the school calendar.</summary>
+[DebuggerDisplay("{Id}: {Start} - {End}")]
+public sealed class AttendancePeriod
+{
+  /// <summary>Gets the Bromcom calendar identifier.</summary>
+  public int Id { get; init; }
+  /// <summary>Gets the period start date and time.</summary>
+  public DateTime Start { get; init; }
+  /// <summary>Gets the period end date and time.</summary>
+  public DateTime End { get; init; }
+}
+
 /// <summary>Weekly attendance marks and calculated attendance percentage for a student.</summary>
 [DebuggerDisplay("{StudentId}: {Percentage}%")]
 public sealed class StudentWeeklyAttendance
@@ -418,6 +430,18 @@ public sealed class BehaviourType
   public string? Name { get; init; }
 }
 
+/// <summary>A behaviour outcome configured in Bromcom.</summary>
+[DebuggerDisplay("{Code,nq}: {Name,nq}")]
+public sealed class BehaviourOutcome
+{
+  /// <summary>Gets the Bromcom behaviour outcome identifier.</summary>
+  public int Id { get; init; }
+  /// <summary>Gets the behaviour outcome code.</summary>
+  public string? Code { get; init; }
+  /// <summary>Gets the behaviour outcome name.</summary>
+  public string? Name { get; init; }
+}
+
 /// <summary>A behaviour event record.</summary>
 [DebuggerDisplay("{Id}")]
 public sealed class BehaviourEvent
@@ -446,6 +470,8 @@ public sealed class BehaviourEvent
   public string? InternalComment { get; init; }
   /// <summary>Gets classification descriptions, or null when not requested. Empty when none are available.</summary>
   public List<string>? Classifications { get; init; }
+  /// <summary>Gets outcome descriptions, or null when not requested. Empty when none are available.</summary>
+  public List<string>? Outcomes { get; init; }
 }
 
 /// <summary>A department with subjects and staff membership.</summary>

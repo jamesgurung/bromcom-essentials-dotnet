@@ -25,8 +25,8 @@ using var scope = host.Services.CreateScope();
 var client = scope.ServiceProvider.GetRequiredService<SchoolBromcomClient>();
 var today = DateOnly.FromDateTime(DateTime.Today);
 
-var students = await client.GetStudentsAsync(includeClasses: true, includeTimetable: true);
-var staff = await client.GetStaffAsync(includeClassesAndTimetable: true);
+var students = await client.GetStudentsAsync();
+var staff = await client.GetStaffAsync();
 var classes = await client.GetClassesAsync();
 var photoIds = await client.GetPhotoIdsAsync();
 var photo = photoIds.Count > 0 ? await client.GetPhotoAsync(photoIds[0].PhotoId) : null;
@@ -36,15 +36,17 @@ var staffAbsences = await client.GetStaffAbsencesAsync(today);
 var detentions = await client.GetDetentionsAsync(today);
 var roomCovers = await client.GetRoomCoversAsync(today);
 var staffCovers = await client.GetStaffCoversAsync(today);
-var parentalConsents = await client.GetParentalConsentAsync(consentType: "U");
+var parentalConsents = await client.GetParentalConsentAsync();
 var behaviourTypes = await client.GetBehaviourTypesAsync();
-var behaviourEvents = await client.GetBehaviourEventsAsync(today, includeClassifications: true);
+var behaviourOutcomes = await client.GetBehaviourOutcomesAsync();
+var behaviourEvents = await client.GetBehaviourEventsAsync(today);
 var departments = await client.GetDepartmentsAsync();
-var columns = await client.GetColumnsAsync(term: "Spring", yearGroup: 7);
-var results = await client.GetResultsAsync(2025, term: "Spring", yearGroup: 7, gradesOnly: true);
-var attendances = await client.GetAttendancesByWeekAsync(today);
-var periodAttendances = await client.GetAttendancesAsync(today);
-var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type: "Example field", value: "Example value");
+var columns = await client.GetColumnsAsync();
+var results = await client.GetResultsAsync(2026, term: "Autumn", yearGroup: 7, gradesOnly: true);
+var attendancePeriods = await client.GetAttendancePeriodsAsync(today, endDate: today);
+var attendancesByWeek = await client.GetAttendancesByWeekAsync(today);
+var attendances = await client.GetAttendancesAsync(today);
+var udfData = await client.GetUdfDataAsync();
 ```
 
 ## Data model
@@ -246,6 +248,14 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 | `Code` | `string?` |
 | `Name` | `string?` |
 
+### `BehaviourOutcome`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `Code` | `string?` |
+| `Name` | `string?` |
+
 ### `BehaviourEvent`
 
 | Property | Type |
@@ -262,6 +272,7 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 | `Comment` | `string?` |
 | `InternalComment` | `string?` |
 | `Classifications` | `List<string>?` |
+| `Outcomes` | `List<string>?` |
 
 ### `Department`
 
@@ -319,6 +330,16 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 | `AssessmentTypeId` | `int` |
 | `Result` | `string` |
 | `ModifiedBy` | `int` |
+
+### `AttendancePeriod`
+
+`GetAttendancePeriodsAsync` filters by period start date. Omit `endDate` to retrieve periods from `startDate` onward without an upper bound.
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `Start` | `DateTime` |
+| `End` | `DateTime` |
 
 ### `StudentWeeklyAttendance`
 
@@ -381,16 +402,20 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 * `POST /v2/AssessmentResults`
 * `GET /v2/AssociationAssessmentColumns`
 * `GET /v2/AssociationAssessmentResultsRaw`
+* `POST /v2/Attendances`
 * `GET /v2/BasicAttendance`
 * `GET /v2/BehaviourEventRecordClassifications`
 * `GET /v2/BehaviourEventRecords`
 * `POST /v2/BehaviourEventRecords`
 * `GET /v2/BehaviourEvents`
+* `GET /v2/BehaviourOutcomes`
+* `GET /v2/Calendars`
 * `GET /v2/Classes`
 * `GET /v2/ClubDetails`
 * `GET /v2/ClubStudentsAndAttendance`
 * `GET /v2/Departments`
 * `GET /v2/DepartmentTeachers`
+* `GET /v2/EventRecordOutcomes`
 * `GET /v2/PersonPhotos`
 * `GET /v2/RoomCovers`
 * `GET /v2/Staff`
