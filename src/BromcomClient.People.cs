@@ -48,13 +48,22 @@ public partial class BromcomClient
   {
     ValidateRequest(schoolId);
 
-    var students = await GetAsync<StudentFlatViewContract>("/v2/StudentFlatView", schoolId, null, "enrolment", cancellationToken).ConfigureAwait(false);
+    var studentsTask = GetAsync<StudentFlatViewContract>("/v2/StudentFlatView", schoolId, null, "enrolment", cancellationToken);
+    var classesTask = includeClasses
+      ? GetAsync<YearGroupSubjectStudentContract>("/v2/YearGroupSubjectStudents", schoolId, null, null, cancellationToken)
+      : Task.FromResult<IReadOnlyList<YearGroupSubjectStudentContract>>([]);
+    var timetableTask = includeTimetable
+      ? GetTimetableRowsAsync(schoolId, true, cancellationToken)
+      : Task.FromResult<List<TimetableContract>>([]);
+    await Task.WhenAll(studentsTask, classesTask, timetableTask).ConfigureAwait(false);
+
+    var students = await studentsTask.ConfigureAwait(false);
     var classesByStudentId = new Dictionary<int, List<StudentClass>>();
     var timetableByStudentId = new Dictionary<int, List<StudentTimetableEntry>>();
 
     if (includeClasses)
     {
-      var classes = await GetAsync<YearGroupSubjectStudentContract>("/v2/YearGroupSubjectStudents", schoolId, null, null, cancellationToken).ConfigureAwait(false);
+      var classes = await classesTask.ConfigureAwait(false);
       classesByStudentId = classes.Where(x => !string.IsNullOrWhiteSpace(x.ClassName)).GroupBy(x => x.StudentId).ToDictionary(
         g => g.Key,
         g => g.Select(x => new StudentClass { Name = CleanClassName(x.ClassName)!, Subject = CleanString(x.SubjectDescription) })
@@ -63,7 +72,7 @@ public partial class BromcomClient
 
     if (includeTimetable)
     {
-      var timetableRows = await GetTimetableRowsAsync(schoolId, true, cancellationToken).ConfigureAwait(false);
+      var timetableRows = await timetableTask.ConfigureAwait(false);
       timetableByStudentId = timetableRows
         .Where(x => !string.IsNullOrWhiteSpace(x.WeekDayPeriod) && !string.IsNullOrWhiteSpace(x.ClassName) && x.StudentId is not null)
         .GroupBy(x => x.StudentId!.Value)
@@ -114,15 +123,22 @@ public partial class BromcomClient
   {
     ValidateRequest(schoolId);
 
-    var staff = await GetAsync<StaffContract>("/v2/Staff", schoolId, null, null, cancellationToken).ConfigureAwait(false);
-    var lineManagers = await GetAsync<StaffLineManagerContract>("/v2/StaffLineManagers", schoolId, null, null, cancellationToken).ConfigureAwait(false);
+    var staffTask = GetAsync<StaffContract>("/v2/Staff", schoolId, null, null, cancellationToken);
+    var lineManagersTask = GetAsync<StaffLineManagerContract>("/v2/StaffLineManagers", schoolId, null, null, cancellationToken);
+    var timetableTask = includeClassesAndTimetable
+      ? GetTimetableRowsAsync(schoolId, false, cancellationToken)
+      : Task.FromResult<List<TimetableContract>>([]);
+    await Task.WhenAll(staffTask, lineManagersTask, timetableTask).ConfigureAwait(false);
+
+    var staff = await staffTask.ConfigureAwait(false);
+    var lineManagers = await lineManagersTask.ConfigureAwait(false);
     var lineManagerIdsByStaffId = lineManagers.GroupBy(row => row.EmployeeId).ToDictionary(g => g.Key, g => g.First().LineManagerEmployeeId);
     var classesByStaffId = new Dictionary<int, List<string>>();
     var timetableByStaffId = new Dictionary<int, List<StaffTimetableEntry>>();
 
     if (includeClassesAndTimetable)
     {
-      var timetableRows = await GetTimetableRowsAsync(schoolId, false, cancellationToken).ConfigureAwait(false);
+      var timetableRows = await timetableTask.ConfigureAwait(false);
       classesByStaffId = timetableRows
         .Where(x => x.StaffId is not null && !string.IsNullOrWhiteSpace(x.ClassName))
         .GroupBy(x => x.StaffId!.Value)

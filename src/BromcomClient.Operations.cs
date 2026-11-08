@@ -321,21 +321,42 @@ public partial class BromcomClient
       var eventRecordFilters = studentIds is { Count: > 0 } || eventTypeIds is { Count: > 0 } || isProcessed is not null
         ? eventIds.Chunk(50).Select(ids => $"({string.Join(" or ", ids.Select(id => FormattableString.Invariant($"eventRecordID={id}")))})")
         : new[] { FormattableString.Invariant($"eventRecordID>={eventIds.Min()} and eventRecordID<={eventIds.Max()}") };
+      using var requestLimit = new SemaphoreSlim(4);
+
+      async Task<T[]> GetRelatedRecordsAsync<T>(string path)
+      {
+        var batches = await Task.WhenAll(eventRecordFilters.Select(async filter =>
+        {
+          await requestLimit.WaitAsync(cancellationToken).ConfigureAwait(false);
+          try
+          {
+            return await GetAsync<T>(path, schoolId, filter, null, cancellationToken).ConfigureAwait(false);
+          }
+          finally
+          {
+            requestLimit.Release();
+          }
+        })).ConfigureAwait(false);
+        return batches.SelectMany(batch => batch).ToArray();
+      }
+
+      var classificationsTask = includeClassifications
+        ? GetRelatedRecordsAsync<BehaviourEventClassificationContract>("/v2/BehaviourEventRecordClassifications")
+        : Task.FromResult<BehaviourEventClassificationContract[]>([]);
+      var outcomesTask = includeOutcomes
+        ? GetRelatedRecordsAsync<BehaviourEventOutcomeContract>("/v2/EventRecordOutcomes")
+        : Task.FromResult<BehaviourEventOutcomeContract[]>([]);
+      await Task.WhenAll(classificationsTask, outcomesTask).ConfigureAwait(false);
+
       if (includeClassifications)
       {
-        var classifications = new List<BehaviourEventClassificationContract>();
-        foreach (var filter in eventRecordFilters)
-          classifications.AddRange(await GetAsync<BehaviourEventClassificationContract>("/v2/BehaviourEventRecordClassifications", schoolId, filter, null, cancellationToken).ConfigureAwait(false));
-
+        var classifications = await classificationsTask.ConfigureAwait(false);
         classificationsByEventId = classifications.Where(row => !string.IsNullOrWhiteSpace(row.ClassificationDescription))
           .GroupBy(row => row.EventRecordId).ToDictionary(g => g.Key, g => g.Select(row => CleanString(row.ClassificationDescription)!).ToList());
       }
       if (includeOutcomes)
       {
-        var outcomes = new List<BehaviourEventOutcomeContract>();
-        foreach (var filter in eventRecordFilters)
-          outcomes.AddRange(await GetAsync<BehaviourEventOutcomeContract>("/v2/EventRecordOutcomes", schoolId, filter, null, cancellationToken).ConfigureAwait(false));
-
+        var outcomes = await outcomesTask.ConfigureAwait(false);
         outcomesByEventId = outcomes.Where(row => !string.IsNullOrWhiteSpace(row.OutcomeDescription))
           .GroupBy(row => row.EventRecordId).ToDictionary(g => g.Key, g => g.Select(row => CleanString(row.OutcomeDescription)!).ToList());
       }
@@ -407,9 +428,14 @@ public partial class BromcomClient
   {
     ValidateRequest(schoolId);
 
-    var departmentSubjects = await GetAsync<DepartmentContract>("/v2/Departments", schoolId, null, null, cancellationToken).ConfigureAwait(false);
-    var departmentTeachers = await GetAsync<DepartmentTeacherContract>("/v2/DepartmentTeachers", schoolId, null, null, cancellationToken).ConfigureAwait(false);
-    var subjects = await GetAsync<SubjectContract>("/v2/Subjects", schoolId, null, null, cancellationToken).ConfigureAwait(false);
+    var departmentSubjectsTask = GetAsync<DepartmentContract>("/v2/Departments", schoolId, null, null, cancellationToken);
+    var departmentTeachersTask = GetAsync<DepartmentTeacherContract>("/v2/DepartmentTeachers", schoolId, null, null, cancellationToken);
+    var subjectsTask = GetAsync<SubjectContract>("/v2/Subjects", schoolId, null, null, cancellationToken);
+    await Task.WhenAll(departmentSubjectsTask, departmentTeachersTask, subjectsTask).ConfigureAwait(false);
+
+    var departmentSubjects = await departmentSubjectsTask.ConfigureAwait(false);
+    var departmentTeachers = await departmentTeachersTask.ConfigureAwait(false);
+    var subjects = await subjectsTask.ConfigureAwait(false);
 
     var subjectsById = subjects.ToDictionary(s => s.SubjectId);
     var teachersByDepartmentId = departmentTeachers.ToLookup(t => t.DepartmentId);
