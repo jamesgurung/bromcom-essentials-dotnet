@@ -258,6 +258,7 @@ var udfData = await client.GetUdfDataAsync(entityType: "Student", id: 123, type:
 | `LocationId` | `int?` |
 | `Date` | `DateTime` |
 | `Points` | `int` |
+| `IsProcessed` | `bool` |
 | `Comment` | `string?` |
 | `InternalComment` | `string?` |
 | `Classifications` | `List<string>?` |

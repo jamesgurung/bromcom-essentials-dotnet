@@ -438,6 +438,8 @@ public sealed class BehaviourEvent
   public DateTime Date { get; init; }
   /// <summary>Gets the behaviour points adjustment.</summary>
   public int Points { get; init; }
+  /// <summary>Gets whether the behaviour event has been processed.</summary>
+  public bool IsProcessed { get; init; }
   /// <summary>Gets the external event comment.</summary>
   public string? Comment { get; init; }
   /// <summary>Gets the internal event comment.</summary>

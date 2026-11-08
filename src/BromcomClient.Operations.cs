@@ -260,11 +260,13 @@ public partial class BromcomClient
     }).OrderBy(x => x.Name).ThenBy(x => x.Code).ThenBy(x => x.Id).ToList();
   }
 
-  /// <summary>Gets behaviour event records for a date range, with an optional student filter.</summary>
+  /// <summary>Gets behaviour event records for a date range, with optional student, event type, and processing status filters.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="startDate">The first date in the range.</param>
   /// <param name="endDate">The last date in the range. When omitted, only <paramref name="startDate"/> is used.</param>
   /// <param name="studentIds">Optional student identifiers to filter by.</param>
+  /// <param name="eventTypeIds">Optional behaviour event type identifiers to filter by.</param>
+  /// <param name="isProcessed">Optional processing status to filter by.</param>
   /// <param name="includeClassifications">Whether to include classification descriptions for each event.</param>
   /// <param name="cancellationToken">A token that can cancel the request.</param>
   /// <returns>A list of behaviour event records ordered by date, student identifier, and event identifier.</returns>
@@ -273,20 +275,24 @@ public partial class BromcomClient
   /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
   public async Task<IReadOnlyList<BehaviourEvent>> GetBehaviourEventsAsync(int schoolId, DateOnly startDate, DateOnly? endDate = null,
-    IList<int>? studentIds = null, bool includeClassifications = false, CancellationToken cancellationToken = default)
+    IList<int>? studentIds = null, IList<int>? eventTypeIds = null, bool? isProcessed = null,
+    bool includeClassifications = false, CancellationToken cancellationToken = default)
   {
     ValidateRequest(schoolId);
     ValidateDateRange(startDate, endDate);
 
     var entityFilter = BuildDateRangeEntityFilter("eventDate", startDate, endDate ?? startDate);
     entityFilter = AppendStudentEntityFilter(entityFilter, studentIds);
-    var events = await GetAsync<BehaviourEventContract>("/v2/BehaviourEventRecords", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+    if (eventTypeIds is { Count: > 0 })
+      entityFilter += $" and ({string.Join(" or ", eventTypeIds.Distinct().Select(id => FormattableString.Invariant($"eventID={id}")))})";
+    if (isProcessed is not null) entityFilter += $" and processed='{isProcessed.Value}'";
+    var events = await GetAsync<BehaviourEventGetContract>("/v2/BehaviourEventRecords", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
     var classificationsByEventId = new Dictionary<int, List<string>>();
 
     if (includeClassifications && events.Count > 0)
     {
       var eventIds = events.Select(row => row.EventRecordId).Distinct().ToArray();
-      var classificationFilters = studentIds is { Count: > 0 }
+      var classificationFilters = studentIds is { Count: > 0 } || eventTypeIds is { Count: > 0 } || isProcessed is not null
         ? eventIds.Chunk(50).Select(ids => $"({string.Join(" or ", ids.Select(id => FormattableString.Invariant($"eventRecordID={id}")))})")
         : new[] { FormattableString.Invariant($"eventRecordID>={eventIds.Min()} and eventRecordID<={eventIds.Max()}") };
       var classifications = new List<BehaviourEventClassificationContract>();
@@ -307,6 +313,7 @@ public partial class BromcomClient
       LocationId = x.Row.LocationId,
       Date = x.DateTime.GetValueOrDefault(),
       Points = x.Row.Adjustment,
+      IsProcessed = x.Row.Processed,
       Comment = CleanString(x.Row.Comment),
       InternalComment = CleanString(x.Row.InternalComment),
       Classifications = includeClassifications ? classificationsByEventId.GetValueOrDefault(x.Row.EventRecordId) ?? [] : null

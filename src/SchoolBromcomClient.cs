@@ -98,10 +98,11 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<BehaviourType>> GetBehaviourTypesAsync(CancellationToken cancellationToken = default) =>
     _client.GetBehaviourTypesAsync(_schoolId, cancellationToken);
 
-  /// <summary>Gets behaviour events for a date range, with an optional student filter.</summary>
+  /// <summary>Gets behaviour events for a date range, with optional student, event type, and processing status filters.</summary>
   public Task<IReadOnlyList<BehaviourEvent>> GetBehaviourEventsAsync(DateOnly startDate, DateOnly? endDate = null,
-    IList<int>? studentIds = null, bool includeClassifications = false, CancellationToken cancellationToken = default) =>
-    _client.GetBehaviourEventsAsync(_schoolId, startDate, endDate, studentIds, includeClassifications, cancellationToken);
+    IList<int>? studentIds = null, IList<int>? eventTypeIds = null, bool? isProcessed = null,
+    bool includeClassifications = false, CancellationToken cancellationToken = default) =>
+    _client.GetBehaviourEventsAsync(_schoolId, startDate, endDate, studentIds, eventTypeIds, isProcessed, includeClassifications, cancellationToken);
 
   /// <summary>Creates or updates a behaviour event record.</summary>
   public Task SetBehaviourEventAsync(BehaviourEvent ev, CancellationToken cancellationToken = default) =>

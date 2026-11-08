@@ -182,6 +182,11 @@ internal sealed class BehaviourEventPostContract : BehaviourEventContract
   public int SchoolId { get; set; }
 }
 
+internal sealed class BehaviourEventGetContract : BehaviourEventContract
+{
+  public bool Processed { get; set; }
+}
+
 internal sealed class BehaviourEventClassificationContract
 {
   public int EventRecordId { get; set; }
