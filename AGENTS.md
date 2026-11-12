@@ -1,5 +1,9 @@
 # AGENTS
 
+## API Reference
+
+- [Bromcom Partner API v2 OpenAPI specification](https://api.bromcomcloud.com/swagger/v2/swagger.json)
+
 ## Instructions
 
 - Make the smallest reasonable code change that fully solves the task, keeping the diff to a minimum.

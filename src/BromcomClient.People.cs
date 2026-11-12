@@ -33,6 +33,131 @@ public partial class BromcomClient
     return _transport.GetPhotoAsync(photoId, cancellationToken);
   }
 
+  /// <summary>Gets student documents, with optional creation date and student filters.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="startDate">Optional inclusive creation start date, with no upper bound.</param>
+  /// <param name="studentIds">Optional student identifiers to filter by. Null or empty includes all students.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of documents ordered by student identifier, creation date, and document identifier.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<StudentDocument>> GetStudentDocumentsAsync(int schoolId, DateOnly? startDate = null,
+    IList<int>? studentIds = null, CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var filter = startDate is DateOnly start ? FormattableString.Invariant($"createdDate>='{start:yyyy-MM-dd}T00:00:00'") : string.Empty;
+    var entityFilter = AppendStudentEntityFilter(filter, studentIds);
+    var documents = await GetAsync<StudentDocumentContract>("/v2/StudentDocumentObjects", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+
+    return documents.Select(row => new StudentDocument
+    {
+      Id = row.ObjectId,
+      StudentId = row.StudentId,
+      Name = CleanString(row.DocumentName),
+      Type = CleanString(row.DocumentType),
+      FileName = CleanString(row.FileName),
+      CreatedDate = ParseDateTime(row.CreatedDate),
+      OwnerId = row.OwnerId
+    }).OrderBy(x => x.StudentId).ThenBy(x => x.CreatedDate).ThenBy(x => x.Id).ToList();
+  }
+
+  /// <summary>Gets the file content for a student document.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="documentId">The document object identifier returned by <see cref="GetStudentDocumentsAsync"/>.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>The decoded document bytes.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> or <paramref name="documentId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or contains no content.</exception>
+  public Task<byte[]> GetStudentDocumentContentAsync(int schoolId, int documentId, CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+    ArgumentOutOfRangeException.ThrowIfNegativeOrZero(documentId);
+    return _transport.GetStudentDocumentContentAsync(schoolId, documentId, cancellationToken);
+  }
+
+  /// <summary>Gets medical conditions, excluding blank and NON condition names, with an optional person filter.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="personIds">Optional person identifiers to filter by. Null or empty includes all people.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of medical conditions ordered by person identifier, description, and type.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<PersonMedicalCondition>> GetMedicalConditionsAsync(int schoolId, IList<int>? personIds = null,
+    CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var entityFilter = AppendStudentEntityFilter(string.Empty, personIds, "personID");
+    var conditions = await GetAsync<PersonMedicalConditionContract>("/v2/PersonMedicalConditions", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+
+    return conditions.Where(row => CleanString(row.MedicalConditionName) is string name && !name.Equals("NON", StringComparison.OrdinalIgnoreCase))
+      .Select(row => new PersonMedicalCondition
+      {
+        PersonId = row.PersonId,
+        Description = CleanString(row.MedicalConditionDescription),
+        Type = CleanString(row.MedicalConditionTypeDescription),
+        Notes = CleanString(row.MedicalConditionRemark),
+        InformationReceivedOn = ParseDateTime(row.InformationReceivedOn)
+      }).OrderBy(x => x.PersonId).ThenBy(x => x.Description).ThenBy(x => x.Type).ToList();
+  }
+
+  /// <summary>Gets dietary needs with an optional person filter.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="personIds">Optional person identifiers to filter by. Null or empty includes all people.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of dietary needs ordered by person identifier and description.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<PersonDietaryNeed>> GetDietaryNeedsAsync(int schoolId, IList<int>? personIds = null,
+    CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var entityFilter = AppendStudentEntityFilter(string.Empty, personIds, "personID");
+    var needs = await GetAsync<PersonDietaryNeedContract>("/v2/PersonDietaryNeeds", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+
+    return needs.Select(row => new PersonDietaryNeed
+    {
+      PersonId = row.PersonId,
+      Description = CleanString(row.DietaryNeedDescription),
+      Notes = CleanString(row.DietaryNeedRemark),
+      InformationReceivedOn = ParseDateTime(row.InformationReceivedOn)
+    }).OrderBy(x => x.PersonId).ThenBy(x => x.Description).ToList();
+  }
+
+  /// <summary>Gets disabilities with an optional person filter.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="personIds">Optional person identifiers to filter by. Null or empty includes all people.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of disabilities ordered by person identifier and description.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<PersonDisability>> GetDisabilitiesAsync(int schoolId, IList<int>? personIds = null,
+    CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var entityFilter = AppendStudentEntityFilter(string.Empty, personIds, "personID");
+    var disabilities = await GetAsync<PersonDisabilityContract>("/v2/Disabilities", schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+
+    return disabilities.Select(row => new PersonDisability
+    {
+      PersonId = row.PersonId,
+      Description = CleanString(row.DisabilityDescription)
+    }).OrderBy(x => x.PersonId).ThenBy(x => x.Description).ToList();
+  }
+
   /// <summary>Gets students for a school, with optional class and timetable data.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="includeClasses">Whether to include class memberships for each student.</param>

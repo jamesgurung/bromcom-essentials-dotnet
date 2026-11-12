@@ -69,6 +69,52 @@ internal sealed class PersonPhotoContract
   public string? Photo { get; set; }
 }
 
+internal sealed class StudentDocumentContract
+{
+  public int StudentId { get; set; }
+  public int ObjectId { get; set; }
+  public string? DocumentName { get; set; }
+  public string? DocumentType { get; set; }
+  public string? FileName { get; set; }
+  public string? CreatedDate { get; set; }
+  public int OwnerId { get; set; }
+}
+
+internal sealed class StudentDocumentContentResponse
+{
+  public bool Success { get; set; }
+  public StudentDocumentContentContract? Data { get; set; }
+}
+
+internal sealed class StudentDocumentContentContract
+{
+  public byte[]? Content { get; set; }
+}
+
+internal sealed class PersonMedicalConditionContract
+{
+  public int PersonId { get; set; }
+  public string? MedicalConditionName { get; set; }
+  public string? MedicalConditionDescription { get; set; }
+  public string? MedicalConditionTypeDescription { get; set; }
+  public string? MedicalConditionRemark { get; set; }
+  public string? InformationReceivedOn { get; set; }
+}
+
+internal sealed class PersonDietaryNeedContract
+{
+  public int PersonId { get; set; }
+  public string? DietaryNeedDescription { get; set; }
+  public string? DietaryNeedRemark { get; set; }
+  public string? InformationReceivedOn { get; set; }
+}
+
+internal sealed class PersonDisabilityContract
+{
+  public int PersonId { get; set; }
+  public string? DisabilityDescription { get; set; }
+}
+
 internal sealed class YearGroupSubjectStudentContract
 {
   public int StudentId { get; set; }

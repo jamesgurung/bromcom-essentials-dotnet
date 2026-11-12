@@ -41,6 +41,27 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<byte[]> GetPhotoAsync(string photoId, CancellationToken cancellationToken = default) =>
     _client.GetPhotoAsync(photoId, cancellationToken);
 
+  /// <summary>Gets student documents, with optional inclusive creation start date and student filters.</summary>
+  public Task<IReadOnlyList<StudentDocument>> GetStudentDocumentsAsync(DateOnly? startDate = null, IList<int>? studentIds = null,
+    CancellationToken cancellationToken = default) =>
+    _client.GetStudentDocumentsAsync(_schoolId, startDate, studentIds, cancellationToken);
+
+  /// <summary>Gets the decoded file content for a student document object identifier.</summary>
+  public Task<byte[]> GetStudentDocumentContentAsync(int documentId, CancellationToken cancellationToken = default) =>
+    _client.GetStudentDocumentContentAsync(_schoolId, documentId, cancellationToken);
+
+  /// <summary>Gets medical conditions, excluding blank and NON condition names, with an optional person filter.</summary>
+  public Task<IReadOnlyList<PersonMedicalCondition>> GetMedicalConditionsAsync(IList<int>? personIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetMedicalConditionsAsync(_schoolId, personIds, cancellationToken);
+
+  /// <summary>Gets dietary needs with an optional person filter.</summary>
+  public Task<IReadOnlyList<PersonDietaryNeed>> GetDietaryNeedsAsync(IList<int>? personIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetDietaryNeedsAsync(_schoolId, personIds, cancellationToken);
+
+  /// <summary>Gets disabilities with an optional person filter.</summary>
+  public Task<IReadOnlyList<PersonDisability>> GetDisabilitiesAsync(IList<int>? personIds = null, CancellationToken cancellationToken = default) =>
+    _client.GetDisabilitiesAsync(_schoolId, personIds, cancellationToken);
+
   /// <summary>Gets clubs that are active today.</summary>
   public Task<IReadOnlyList<Club>> GetClubsAsync(CancellationToken cancellationToken = default) =>
     _client.GetClubsAsync(_schoolId, cancellationToken);

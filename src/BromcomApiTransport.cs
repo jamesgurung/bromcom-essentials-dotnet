@@ -78,6 +78,32 @@ internal sealed class BromcomApiTransport : IDisposable
     return await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
   }
 
+  public async Task<byte[]> GetStudentDocumentContentAsync(int schoolId, int documentId, CancellationToken cancellationToken)
+  {
+    ObjectDisposedException.ThrowIf(_disposed, this);
+
+    const string path = "/v2/StudentDocumentObject";
+    var url = FormattableString.Invariant($"{ApiBaseUrl}{path}?schoolId={schoolId}&objectId={documentId}");
+    using var request = CreateRequest(HttpMethod.Get, url);
+    using var response = await SendAsync(request, path, cancellationToken).ConfigureAwait(false);
+
+    StudentDocumentContentResponse? payload;
+    try
+    {
+      await using var content = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+      payload = await JsonSerializer.DeserializeAsync<StudentDocumentContentResponse>(content, BromcomJsonContext.Default.Options, cancellationToken).ConfigureAwait(false);
+    }
+    catch (JsonException ex)
+    {
+      throw new InvalidOperationException($"Invalid JSON returned from '{path}'.", ex);
+    }
+
+    if (payload is null) throw new InvalidOperationException($"Empty response payload from '{path}'.");
+    if (!payload.Success) throw new InvalidOperationException($"API returned success=false for '{path}'.");
+    if (payload.Data is null) throw new InvalidOperationException($"Response data was null for '{path}'.");
+    return payload.Data.Content ?? throw new InvalidOperationException($"Response content was null for '{path}'.");
+  }
+
   private HttpRequestMessage CreateRequest(HttpMethod method, string url)
   {
     var request = new HttpRequestMessage(method, url);

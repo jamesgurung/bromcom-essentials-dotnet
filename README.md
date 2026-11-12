@@ -1,6 +1,6 @@
 # Bromcom Essentials .NET SDK
 
-Retrieve basic staff, student, class, photo, club, detention, department, attendance, cover, consent, behaviour, assessment, and user defined field data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
+Retrieve basic staff, student, class, photo, document, medical condition, dietary need, disability, club, detention, department, attendance, cover, consent, behaviour, assessment, and user defined field data from the [Bromcom Partner API](https://partner.bromcomcloud.com) in a .NET application.
 
 > This repository is not affiliated with Bromcom.
 
@@ -30,6 +30,11 @@ var staff = await client.GetStaffAsync();
 var classes = await client.GetClassesAsync();
 var photoIds = await client.GetPhotoIdsAsync();
 var photo = photoIds.Count > 0 ? await client.GetPhotoAsync(photoIds[0].PhotoId) : null;
+var documents = await client.GetStudentDocumentsAsync(startDate: today);
+var documentContent = documents.Count > 0 ? await client.GetStudentDocumentContentAsync(documents[0].Id) : null;
+var medicalConditions = await client.GetMedicalConditionsAsync();
+var dietaryNeeds = await client.GetDietaryNeedsAsync();
+var disabilities = await client.GetDisabilitiesAsync();
 var clubs = await client.GetClubsAsync();
 var clubAttendances = await client.GetClubAttendancesAsync(today);
 var staffAbsences = await client.GetStaffAbsencesAsync(today);
@@ -141,6 +146,44 @@ var udfData = await client.GetUdfDataAsync();
 | --- | --- |
 | `PersonId` | `int` |
 | `PhotoId` | `string` |
+
+### `StudentDocument`
+
+| Property | Type |
+| --- | --- |
+| `Id` | `int` |
+| `StudentId` | `int` |
+| `Name` | `string?` |
+| `Type` | `string?` |
+| `FileName` | `string?` |
+| `CreatedDate` | `DateTime?` |
+| `OwnerId` | `int` |
+
+### `PersonMedicalCondition`
+
+| Property | Type |
+| --- | --- |
+| `PersonId` | `int` |
+| `Description` | `string?` |
+| `Type` | `string?` |
+| `Notes` | `string?` |
+| `InformationReceivedOn` | `DateTime?` |
+
+### `PersonDietaryNeed`
+
+| Property | Type |
+| --- | --- |
+| `PersonId` | `int` |
+| `Description` | `string?` |
+| `Notes` | `string?` |
+| `InformationReceivedOn` | `DateTime?` |
+
+### `PersonDisability`
+
+| Property | Type |
+| --- | --- |
+| `PersonId` | `int` |
+| `Description` | `string?` |
 
 ### `Club`
 
@@ -333,8 +376,6 @@ var udfData = await client.GetUdfDataAsync();
 
 ### `AttendancePeriod`
 
-`GetAttendancePeriodsAsync` filters by period start date. Omit `endDate` to retrieve periods from `startDate` onward without an upper bound.
-
 | Property | Type |
 | --- | --- |
 | `Id` | `int` |
@@ -415,7 +456,10 @@ var udfData = await client.GetUdfDataAsync();
 * `GET /v2/ClubStudentsAndAttendance`
 * `GET /v2/Departments`
 * `GET /v2/DepartmentTeachers`
+* `GET /v2/Disabilities`
 * `GET /v2/EventRecordOutcomes`
+* `GET /v2/PersonDietaryNeeds`
+* `GET /v2/PersonMedicalConditions`
 * `GET /v2/PersonPhotos`
 * `GET /v2/RoomCovers`
 * `GET /v2/Staff`
@@ -424,6 +468,8 @@ var udfData = await client.GetUdfDataAsync();
 * `GET /v2/StaffLineManagers`
 * `GET /v2/StudentAttendanceByWeek`
 * `GET /v2/StudentDetentions`
+* `GET /v2/StudentDocumentObject`
+* `GET /v2/StudentDocumentObjects`
 * `GET /v2/StudentFlatView`
 * `GET /v2/StudentParentalConsent`
 * `GET /v2/StudentTimetables`

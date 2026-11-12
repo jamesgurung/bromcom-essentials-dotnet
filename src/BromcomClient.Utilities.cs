@@ -26,10 +26,10 @@ public partial class BromcomClient
     return AppendStudentEntityFilter(string.Join(" and ", filters), studentIds);
   }
 
-  private static string AppendStudentEntityFilter(string entityFilter, IList<int>? studentIds)
+  private static string AppendStudentEntityFilter(string entityFilter, IList<int>? studentIds, string fieldName = "studentID")
   {
     if (studentIds is not { Count: > 0 }) return entityFilter;
-    var studentFilter = $"({string.Join(" or ", studentIds.Distinct().Select(id => $"studentID={id.ToString(CultureInfo.InvariantCulture)}"))})";
+    var studentFilter = $"({string.Join(" or ", studentIds.Distinct().Select(id => $"{fieldName}={id.ToString(CultureInfo.InvariantCulture)}"))})";
     return entityFilter.Length == 0 ? studentFilter : $"{entityFilter} and {studentFilter}";
   }
 

@@ -88,6 +88,66 @@ public sealed class PersonPhotoId
   public required string PhotoId { get; init; }
 }
 
+/// <summary>A document linked to a student.</summary>
+[DebuggerDisplay("{StudentId}: {Name,nq}")]
+public sealed class StudentDocument
+{
+  /// <summary>Gets the Bromcom document object identifier used to download content.</summary>
+  public int Id { get; init; }
+  /// <summary>Gets the Bromcom student identifier.</summary>
+  public int StudentId { get; init; }
+  /// <summary>Gets the document name.</summary>
+  public string? Name { get; init; }
+  /// <summary>Gets the document type.</summary>
+  public string? Type { get; init; }
+  /// <summary>Gets the file name.</summary>
+  public string? FileName { get; init; }
+  /// <summary>Gets when the document was created.</summary>
+  public DateTime? CreatedDate { get; init; }
+  /// <summary>Gets the document owner identifier.</summary>
+  public int OwnerId { get; init; }
+}
+
+/// <summary>A medical condition recorded for a person.</summary>
+[DebuggerDisplay("{PersonId}: {Description,nq}")]
+public sealed class PersonMedicalCondition
+{
+  /// <summary>Gets the Bromcom person identifier.</summary>
+  public int PersonId { get; init; }
+  /// <summary>Gets the medical condition description.</summary>
+  public string? Description { get; init; }
+  /// <summary>Gets the medical condition type description.</summary>
+  public string? Type { get; init; }
+  /// <summary>Gets the medical condition remarks.</summary>
+  public string? Notes { get; init; }
+  /// <summary>Gets when the medical condition information was received.</summary>
+  public DateTime? InformationReceivedOn { get; init; }
+}
+
+/// <summary>A dietary need recorded for a person.</summary>
+[DebuggerDisplay("{PersonId}: {Description,nq}")]
+public sealed class PersonDietaryNeed
+{
+  /// <summary>Gets the Bromcom person identifier.</summary>
+  public int PersonId { get; init; }
+  /// <summary>Gets the dietary need description.</summary>
+  public string? Description { get; init; }
+  /// <summary>Gets the dietary need remarks.</summary>
+  public string? Notes { get; init; }
+  /// <summary>Gets when the dietary need information was received.</summary>
+  public DateTime? InformationReceivedOn { get; init; }
+}
+
+/// <summary>A disability recorded for a person.</summary>
+[DebuggerDisplay("{PersonId}: {Description,nq}")]
+public sealed class PersonDisability
+{
+  /// <summary>Gets the Bromcom person identifier.</summary>
+  public int PersonId { get; init; }
+  /// <summary>Gets the disability description.</summary>
+  public string? Description { get; init; }
+}
+
 /// <summary>Parent or guardian contact details for a student.</summary>
 [DebuggerDisplay("{Name,nq} ({Relationship,nq})")]
 public sealed class ParentContact
