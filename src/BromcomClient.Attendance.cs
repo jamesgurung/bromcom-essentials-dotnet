@@ -112,7 +112,7 @@ public partial class BromcomClient
       row.StudentId,
       Date = ParseDateOnly(row.CalendarStartDate) ?? startDate,
       PeriodName = CleanString(row.PeriodDisplayName),
-      Code = CleanString(row.Mark),
+      Code = CleanString(row.MarkSubCode) ?? CleanString(row.Mark),
       Comment = CleanString(row.AttendanceComment)
     })
       .Where(row => row.PeriodName is not null)

@@ -393,6 +393,7 @@ internal sealed class BasicAttendanceContract
   public int StudentId { get; set; }
   public string? CalendarStartDate { get; set; }
   public string? Mark { get; set; }
+  public string? MarkSubCode { get; set; }
   public string? PeriodDisplayName { get; set; }
   public string? AttendanceComment { get; set; }
 }
