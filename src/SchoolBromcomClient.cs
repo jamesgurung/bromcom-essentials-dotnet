@@ -24,7 +24,7 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<SchoolClass>> GetClassesAsync(CancellationToken cancellationToken = default) =>
     _client.GetClassesAsync(_schoolId, cancellationToken);
 
-  /// <summary>Gets students, with optional class and timetable data.</summary>
+  /// <summary>Gets students and their contacts, with optional class and timetable data.</summary>
   public Task<IReadOnlyList<Student>> GetStudentsAsync(bool includeClasses = false, bool includeTimetable = false,
     CancellationToken cancellationToken = default) =>
     _client.GetStudentsAsync(_schoolId, includeClasses, includeTimetable, cancellationToken);
@@ -49,6 +49,11 @@ public sealed class SchoolBromcomClient : IDisposable
   /// <summary>Gets the decoded file content for a student document object identifier.</summary>
   public Task<byte[]> GetStudentDocumentContentAsync(int documentId, CancellationToken cancellationToken = default) =>
     _client.GetStudentDocumentContentAsync(_schoolId, documentId, cancellationToken);
+
+  /// <summary>Gets student communication logs, with optional student, inclusive start date, and direction filters.</summary>
+  public Task<IReadOnlyList<StudentCommunicationLog>> GetStudentCommunicationLogsAsync(int? studentId = null, DateOnly? startDate = null,
+    CommunicationLogDirection? direction = null, CancellationToken cancellationToken = default) =>
+    _client.GetStudentCommunicationLogsAsync(_schoolId, studentId, startDate, direction, cancellationToken);
 
   /// <summary>Gets medical conditions, excluding blank and NON condition names, with an optional person filter.</summary>
   public Task<IReadOnlyList<PersonMedicalCondition>> GetMedicalConditionsAsync(IList<int>? personIds = null, CancellationToken cancellationToken = default) =>

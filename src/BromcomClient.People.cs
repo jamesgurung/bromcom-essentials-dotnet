@@ -80,6 +80,50 @@ public partial class BromcomClient
     return _transport.GetStudentDocumentContentAsync(schoolId, documentId, cancellationToken);
   }
 
+  /// <summary>Gets student communication logs, with optional student, date, and direction filters.</summary>
+  /// <param name="schoolId">The Bromcom school identifier.</param>
+  /// <param name="studentId">Optional student identifier to filter by.</param>
+  /// <param name="startDate">Optional inclusive contact start date, with no upper bound.</param>
+  /// <param name="direction">Optional communication direction to filter by.</param>
+  /// <param name="cancellationToken">A token that can cancel the request.</param>
+  /// <returns>A list of communication logs ordered by student identifier and timestamp.</returns>
+  /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
+  /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
+  /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
+  /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
+  public async Task<IReadOnlyList<StudentCommunicationLog>> GetStudentCommunicationLogsAsync(int schoolId, int? studentId = null,
+    DateOnly? startDate = null, CommunicationLogDirection? direction = null, CancellationToken cancellationToken = default)
+  {
+    ValidateRequest(schoolId);
+
+    var filters = new List<string>();
+    if (studentId is int id) filters.Add(FormattableString.Invariant($"studentID={id}"));
+    if (startDate is DateOnly start) filters.Add(FormattableString.Invariant($"contactedOn>='{start:yyyy-MM-dd}T00:00:00'"));
+    if (direction is not null) filters.Add($"direction='{direction}'");
+
+    var logs = await GetAsync<StudentCommunicationLogContract>("/v2/StudentCommunicationLogs", schoolId, string.Join(" and ", filters), null, cancellationToken).ConfigureAwait(false);
+
+    return logs.Select(row => new StudentCommunicationLog
+    {
+      StudentId = row.StudentId,
+      ContactName = CleanString(row.ContactName),
+      ContactId = row.ContactId,
+      RelationType = CleanString(row.RelationType),
+      StaffId = row.EmployeeId,
+      StaffName = CleanString(row.ContactedBy),
+      Timestamp = ParseDateTime(row.ContactedOn),
+      Direction = CleanString(row.Direction)?.ToUpperInvariant() switch
+      {
+        "OUTBOUND" => CommunicationLogDirection.Outbound,
+        "INBOUND" => CommunicationLogDirection.Inbound,
+        _ => null
+      },
+      Message = CleanString(row.Reason),
+      Outcome = CleanString(row.Outcome),
+      Notes = CleanString(row.Notes)
+    }).OrderBy(x => x.StudentId).ThenBy(x => x.Timestamp).ToList();
+  }
+
   /// <summary>Gets medical conditions, excluding blank and NON condition names, with an optional person filter.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="personIds">Optional person identifiers to filter by. Null or empty includes all people.</param>
@@ -158,7 +202,7 @@ public partial class BromcomClient
     }).OrderBy(x => x.PersonId).ThenBy(x => x.Description).ToList();
   }
 
-  /// <summary>Gets students for a school, with optional class and timetable data.</summary>
+  /// <summary>Gets students and their contacts for a school, with optional class and timetable data.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
   /// <param name="includeClasses">Whether to include class memberships for each student.</param>
   /// <param name="includeTimetable">Whether to include timetable entries for each student.</param>
@@ -173,23 +217,28 @@ public partial class BromcomClient
   {
     ValidateRequest(schoolId);
 
-    var studentsTask = GetAsync<StudentFlatViewContract>("/v2/StudentFlatView", schoolId, null, "enrolment", cancellationToken);
+    var students = await GetAsync<StudentFlatViewContract>("/v2/StudentFlatView", schoolId, null, "enrolment", cancellationToken).ConfigureAwait(false);
+    if (students.Count == 0) return [];
+
+    var studentIds = students.Select(row => row.StudentId).ToHashSet();
+    var studentFilter = BuildIdRangeFilter("studentID", studentIds);
+    var contactsTask = GetStudentContactsByStudentIdAsync(schoolId, studentIds, studentFilter, cancellationToken);
     var classesTask = includeClasses
-      ? GetAsync<YearGroupSubjectStudentContract>("/v2/YearGroupSubjectStudents", schoolId, null, null, cancellationToken)
+      ? GetAsync<YearGroupSubjectStudentContract>("/v2/YearGroupSubjectStudents", schoolId, $"{BuildDefaultEntityFilter(null)} and {studentFilter}", null, cancellationToken)
       : Task.FromResult<IReadOnlyList<YearGroupSubjectStudentContract>>([]);
     var timetableTask = includeTimetable
-      ? GetTimetableRowsAsync(schoolId, true, cancellationToken)
+      ? GetTimetableRowsAsync(schoolId, cancellationToken, studentIds)
       : Task.FromResult<List<TimetableContract>>([]);
-    await Task.WhenAll(studentsTask, classesTask, timetableTask).ConfigureAwait(false);
+    await Task.WhenAll(contactsTask, classesTask, timetableTask).ConfigureAwait(false);
 
-    var students = await studentsTask.ConfigureAwait(false);
+    var contactsByStudentId = await contactsTask.ConfigureAwait(false);
     var classesByStudentId = new Dictionary<int, List<StudentClass>>();
     var timetableByStudentId = new Dictionary<int, List<StudentTimetableEntry>>();
 
     if (includeClasses)
     {
       var classes = await classesTask.ConfigureAwait(false);
-      classesByStudentId = classes.Where(x => !string.IsNullOrWhiteSpace(x.ClassName)).GroupBy(x => x.StudentId).ToDictionary(
+      classesByStudentId = classes.Where(x => studentIds.Contains(x.StudentId) && !string.IsNullOrWhiteSpace(x.ClassName)).GroupBy(x => x.StudentId).ToDictionary(
         g => g.Key,
         g => g.Select(x => new StudentClass { Name = CleanClassName(x.ClassName)!, Subject = CleanString(x.SubjectDescription) })
           .DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList());
@@ -229,7 +278,7 @@ public partial class BromcomClient
       Attendance = row.PresentPercentageWithEA,
       YearGroup = ParseNullableInt(row.YearGroup),
       TutorGroup = CleanTutorGroup(row.TutorGroupName),
-      Parents = BuildParentContacts(row),
+      Contacts = contactsByStudentId.TryGetValue(row.StudentId, out var contacts) ? contacts : [],
       Classes = classesByStudentId.TryGetValue(row.StudentId, out var classes) ? classes : [],
       Timetable = timetableByStudentId.TryGetValue(row.StudentId, out var timetable) ? timetable : []
     }).OrderBy(s => s.Surname).ThenBy(s => s.Forename).ThenBy(s => s.YearGroup).ThenBy(s => s.TutorGroup).ToList();
@@ -251,7 +300,7 @@ public partial class BromcomClient
     var staffTask = GetAsync<StaffContract>("/v2/Staff", schoolId, null, null, cancellationToken);
     var lineManagersTask = GetAsync<StaffLineManagerContract>("/v2/StaffLineManagers", schoolId, null, null, cancellationToken);
     var timetableTask = includeClassesAndTimetable
-      ? GetTimetableRowsAsync(schoolId, false, cancellationToken)
+      ? GetTimetableRowsAsync(schoolId, cancellationToken)
       : Task.FromResult<List<TimetableContract>>([]);
     await Task.WhenAll(staffTask, lineManagersTask, timetableTask).ConfigureAwait(false);
 
@@ -295,42 +344,67 @@ public partial class BromcomClient
     }).OrderBy(s => s.Surname).ThenBy(s => s.Forename).ThenBy(s => s.StaffCode).ToList();
   }
 
-  private static List<ParentContact> BuildParentContacts(StudentFlatViewContract student)
+  private async Task<Dictionary<int, List<StudentContact>>> GetStudentContactsByStudentIdAsync(int schoolId, HashSet<int> studentIds,
+    string studentFilter, CancellationToken cancellationToken)
   {
-    var parents = new List<ParentContact>(3);
-    TryAddParent(parents, student.Contact1ParentalResponsibility, student.Contact1Name, student.Contact1Telephone, student.Contact1Email, student.Contact1Relationship);
-    TryAddParent(parents, student.Contact2ParentalResponsibility, student.Contact2Name, student.Contact2Telephone, student.Contact2Email, student.Contact2Relationship);
-    TryAddParent(parents, student.Contact3ParentalResponsibility, student.Contact3Name, student.Contact3Telephone, student.Contact3Email, student.Contact3Relationship);
-    return parents;
-  }
+    var rows = await GetAsync<StudentContactContract>("/v2/StudentContacts", schoolId, studentFilter, null, cancellationToken).ConfigureAwait(false);
+    var links = rows.Where(row => studentIds.Contains(row.StudentId)).ToList();
+    if (links.Count == 0) return [];
 
-  private static void TryAddParent(List<ParentContact> parents, string? parentalResponsibility, string? name, string? telephone, string? email, string? relationship)
-  {
-    if (!ParseBooleanFlag(parentalResponsibility)) return;
-    parents.Add(new ParentContact
+    var contactIds = links.Select(row => row.ContactId).ToHashSet();
+    var personFilter = BuildIdRangeFilter("personID", contactIds);
+    var peopleTask = GetAsync<PersonContract>("/v2/People", schoolId, personFilter, null, cancellationToken);
+    var communicationsTask = GetAsync<PersonCommunicationsContract>("/v2/PersonCommunications", schoolId, personFilter, null, cancellationToken);
+    await Task.WhenAll(peopleTask, communicationsTask).ConfigureAwait(false);
+
+    var people = await peopleTask.ConfigureAwait(false);
+    var communications = await communicationsTask.ConfigureAwait(false);
+    var peopleById = people.Where(row => contactIds.Contains(row.PersonId)).DistinctBy(row => row.PersonId).ToDictionary(row => row.PersonId);
+    var communicationsById = communications.Where(row => contactIds.Contains(row.PersonId)).DistinctBy(row => row.PersonId).ToDictionary(row => row.PersonId);
+
+    return links.GroupBy(row => row.StudentId).ToDictionary(group => group.Key, group => group.OrderBy(row => row.ContactPriority)
+      .ThenBy(row => row.ContactId).Select(row =>
     {
-      Name = CleanParentName(name),
-      Telephone = CleanTelephone(telephone),
-      Email = CleanString(email)?.ToLowerInvariant(),
-      Relationship = CleanString(relationship)
-    });
+      peopleById.TryGetValue(row.ContactId, out var person);
+      communicationsById.TryGetValue(row.ContactId, out var communication);
+      var seenTelephones = new HashSet<string>(StringComparer.Ordinal);
+      var telephones = new[] { row.ContactPriorityTelephoneNumber, communication?.MobileTelephone, communication?.HomeTelephone, communication?.WorkTelephone }
+        .Select(CleanTelephone).OfType<string>().Where(seenTelephones.Add).ToArray();
+
+      return new StudentContact
+      {
+        Id = row.ContactId,
+        Title = CleanString(person?.Prefix),
+        Forename = CleanString(person?.PreferredFirstName) ?? CleanString(person?.FirstName),
+        Surname = CleanString(person?.PreferredLastName) ?? CleanString(person?.LastName),
+        Telephones = telephones,
+        Email = (CleanString(communication?.HomeEmail) ?? CleanString(communication?.WorkEmail))?.ToLowerInvariant(),
+        Relationship = CleanString(row.ContactRelationType),
+        Priority = row.ContactPriority,
+        Address = CleanString(communication?.HomeAddress),
+        IsAddressConfidential = person?.IsDiscloseAddress ?? false,
+        HasParentalResponsibility = row.ParentResponsibility
+      };
+    }).ToList());
   }
 
-  private async Task<List<TimetableContract>> GetTimetableRowsAsync(int schoolId, bool isStudents, CancellationToken cancellationToken)
+  private async Task<List<TimetableContract>> GetTimetableRowsAsync(int schoolId, CancellationToken cancellationToken, HashSet<int>? studentIds = null)
   {
     var timetableRows = new List<TimetableContract>();
     var daysFound = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     var rowCount = 0;
     var today = DateTime.UtcNow.Date;
     var maxDate = today.AddDays(35);
-    var endpoint = isStudents ? "/v2/StudentTimetables" : "/v2/Timetable";
+    var endpoint = studentIds is null ? "/v2/Timetable" : "/v2/StudentTimetables";
+    var scopeFilter = studentIds is null ? "isCover=0" : BuildIdRangeFilter("studentID", studentIds);
 
     for (var windowStart = today; windowStart <= maxDate; windowStart = windowStart.AddDays(7))
     {
       var windowEnd = windowStart.AddDays(7);
-      var entityFilter = FormattableString.Invariant($"periodStartDate>='{windowStart:yyyy-MM-dd}' and periodStartDate<'{windowEnd:yyyy-MM-dd}'") +
-        (isStudents ? string.Empty : " and isCover=0");
+      var entityFilter = FormattableString.Invariant($"periodStartDate>='{windowStart:yyyy-MM-dd}' and periodStartDate<'{windowEnd:yyyy-MM-dd}' and {scopeFilter}");
       var windowRows = await GetAsync<TimetableContract>(endpoint, schoolId, entityFilter, null, cancellationToken).ConfigureAwait(false);
+      if (studentIds is not null)
+        windowRows = windowRows.Where(row => row.StudentId is int studentId && studentIds.Contains(studentId)).ToList();
 
       var daysInWindow = windowRows.Select(x => x.WeekDayPeriod).Distinct(StringComparer.OrdinalIgnoreCase).Where(x => x is not null && x.Length >= 7)
         .Select(x => x![..7]).Distinct(StringComparer.OrdinalIgnoreCase);

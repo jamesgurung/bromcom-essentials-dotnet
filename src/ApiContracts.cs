@@ -46,21 +46,38 @@ internal sealed class StudentFlatViewContract
   public decimal? PresentPercentageWithEA { get; set; }
   public string? YearGroup { get; set; }
   public string? TutorGroupName { get; set; }
-  public string? Contact1Name { get; set; }
-  public string? Contact1Telephone { get; set; }
-  public string? Contact1Email { get; set; }
-  public string? Contact1Relationship { get; set; }
-  public string? Contact1ParentalResponsibility { get; set; }
-  public string? Contact2Name { get; set; }
-  public string? Contact2Telephone { get; set; }
-  public string? Contact2Email { get; set; }
-  public string? Contact2Relationship { get; set; }
-  public string? Contact2ParentalResponsibility { get; set; }
-  public string? Contact3Name { get; set; }
-  public string? Contact3Telephone { get; set; }
-  public string? Contact3Email { get; set; }
-  public string? Contact3Relationship { get; set; }
-  public string? Contact3ParentalResponsibility { get; set; }
+}
+
+internal sealed class StudentContactContract
+{
+  public int StudentId { get; set; }
+  public int ContactId { get; set; }
+  public string? ContactRelationType { get; set; }
+  public int ContactPriority { get; set; }
+  public bool ParentResponsibility { get; set; }
+  public string? ContactPriorityTelephoneNumber { get; set; }
+}
+
+internal sealed class PersonContract
+{
+  public int PersonId { get; set; }
+  public string? Prefix { get; set; }
+  public string? FirstName { get; set; }
+  public string? LastName { get; set; }
+  public string? PreferredFirstName { get; set; }
+  public string? PreferredLastName { get; set; }
+  public bool? IsDiscloseAddress { get; set; }
+}
+
+internal sealed class PersonCommunicationsContract
+{
+  public int PersonId { get; set; }
+  public string? HomeAddress { get; set; }
+  public string? MobileTelephone { get; set; }
+  public string? HomeTelephone { get; set; }
+  public string? WorkTelephone { get; set; }
+  public string? HomeEmail { get; set; }
+  public string? WorkEmail { get; set; }
 }
 
 internal sealed class PersonPhotoContract
@@ -89,6 +106,21 @@ internal sealed class StudentDocumentContentResponse
 internal sealed class StudentDocumentContentContract
 {
   public byte[]? Content { get; set; }
+}
+
+internal sealed class StudentCommunicationLogContract
+{
+  public int StudentId { get; set; }
+  public string? ContactName { get; set; }
+  public int? ContactId { get; set; }
+  public string? RelationType { get; set; }
+  public int EmployeeId { get; set; }
+  public string? ContactedBy { get; set; }
+  public string? ContactedOn { get; set; }
+  public string? Direction { get; set; }
+  public string? Reason { get; set; }
+  public string? Outcome { get; set; }
+  public string? Notes { get; set; }
 }
 
 internal sealed class PersonMedicalConditionContract

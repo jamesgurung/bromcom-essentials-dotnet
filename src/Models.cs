@@ -26,7 +26,7 @@ public sealed class UdfData
   public string? Value { get; init; }
 }
 
-/// <summary>Basic student details and optional related class, timetable, and parent contact data.</summary>
+/// <summary>Basic student details and contacts, with optional class and timetable data.</summary>
 [DebuggerDisplay("{Forename,nq} {Surname,nq} {TutorGroup,nq}")]
 public sealed class Student
 {
@@ -70,8 +70,8 @@ public sealed class Student
   public string? TutorGroup { get; init; }
   /// <summary>Gets the student's present attendance percentage, when supplied by Bromcom.</summary>
   public decimal? Attendance { get; init; }
-  /// <summary>Gets parent contacts with parental responsibility.</summary>
-  public IReadOnlyList<ParentContact> Parents { get; init; } = [];
+  /// <summary>Gets all contacts linked to the student, ordered by contact priority.</summary>
+  public IReadOnlyList<StudentContact> Contacts { get; init; } = [];
   /// <summary>Gets the student's classes when requested.</summary>
   public IReadOnlyList<StudentClass> Classes { get; init; } = [];
   /// <summary>Gets the student's timetable entries when requested.</summary>
@@ -106,6 +106,45 @@ public sealed class StudentDocument
   public DateTime? CreatedDate { get; init; }
   /// <summary>Gets the document owner identifier.</summary>
   public int OwnerId { get; init; }
+}
+
+/// <summary>A communication recorded for a student.</summary>
+[DebuggerDisplay("{DebuggerText,nq}")]
+public sealed class StudentCommunicationLog
+{
+  /// <summary>Gets the Bromcom student identifier.</summary>
+  public int StudentId { get; init; }
+  /// <summary>Gets the contact's name.</summary>
+  public string? ContactName { get; init; }
+  /// <summary>Gets the Bromcom contact identifier.</summary>
+  public int? ContactId { get; init; }
+  /// <summary>Gets the contact's relationship to the student.</summary>
+  public string? RelationType { get; init; }
+  /// <summary>Gets the Bromcom employee identifier.</summary>
+  public int StaffId { get; init; }
+  /// <summary>Gets the name of the staff member who handled the communication.</summary>
+  public string? StaffName { get; init; }
+  /// <summary>Gets when the communication took place.</summary>
+  public DateTime? Timestamp { get; init; }
+  /// <summary>Gets the direction of the communication, when recognised.</summary>
+  public CommunicationLogDirection? Direction { get; init; }
+  /// <summary>Gets the recorded reason for the communication.</summary>
+  public string? Message { get; init; }
+  /// <summary>Gets the outcome of the communication.</summary>
+  public string? Outcome { get; init; }
+  /// <summary>Gets the notes recorded for the communication.</summary>
+  public string? Notes { get; init; }
+
+  private string DebuggerText => FormattableString.Invariant($"{StudentId}: {Timestamp:yyyy-MM-dd HH:mm:ss} {Direction} {ContactName}");
+}
+
+/// <summary>The direction of a student communication.</summary>
+public enum CommunicationLogDirection
+{
+  /// <summary>The school contacted someone.</summary>
+  Outbound,
+  /// <summary>Someone contacted the school.</summary>
+  Inbound
 }
 
 /// <summary>A medical condition recorded for a person.</summary>
@@ -148,18 +187,32 @@ public sealed class PersonDisability
   public string? Description { get; init; }
 }
 
-/// <summary>Parent or guardian contact details for a student.</summary>
-[DebuggerDisplay("{Name,nq} ({Relationship,nq})")]
-public sealed class ParentContact
+/// <summary>Contact details and relationship for a person linked to a student.</summary>
+[DebuggerDisplay("{Forename,nq} {Surname,nq} ({Relationship,nq})")]
+public sealed class StudentContact
 {
-  /// <summary>Gets the contact name.</summary>
-  public string? Name { get; init; }
-  /// <summary>Gets the contact telephone number.</summary>
-  public string? Telephone { get; init; }
+  /// <summary>Gets the contact's Bromcom person identifier.</summary>
+  public int Id { get; init; }
+  /// <summary>Gets the contact's title.</summary>
+  public string? Title { get; init; }
+  /// <summary>Gets the contact's preferred or legal forename.</summary>
+  public string? Forename { get; init; }
+  /// <summary>Gets the contact's preferred or legal surname.</summary>
+  public string? Surname { get; init; }
+  /// <summary>Gets the contact's distinct telephone numbers in priority, mobile, home, and work order.</summary>
+  public IReadOnlyList<string> Telephones { get; init; } = [];
   /// <summary>Gets the contact email address.</summary>
   public string? Email { get; init; }
   /// <summary>Gets the contact relationship to the student.</summary>
   public string? Relationship { get; init; }
+  /// <summary>Gets the contact's priority for the student.</summary>
+  public int Priority { get; init; }
+  /// <summary>Gets the contact's home address.</summary>
+  public string? Address { get; init; }
+  /// <summary>Gets whether Bromcom marks the contact's home address as confidential.</summary>
+  public bool IsAddressConfidential { get; init; }
+  /// <summary>Gets whether the contact has parental responsibility for the student.</summary>
+  public bool HasParentalResponsibility { get; init; }
 }
 
 /// <summary>A class associated with a student.</summary>

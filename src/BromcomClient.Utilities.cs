@@ -33,6 +33,9 @@ public partial class BromcomClient
     return entityFilter.Length == 0 ? studentFilter : $"{entityFilter} and {studentFilter}";
   }
 
+  private static string BuildIdRangeFilter(string fieldName, IEnumerable<int> ids) =>
+    FormattableString.Invariant($"{fieldName}>={ids.Min()} and {fieldName}<={ids.Max()}");
+
   private static string BuildDateRangeEntityFilter(string fieldName, DateOnly startDate, DateOnly endDate)
   {
     var start = startDate.ToDateTime(TimeOnly.MinValue);
@@ -106,32 +109,8 @@ public partial class BromcomClient
     if (cleaned is null) return null;
     var startsWithPlus = cleaned.StartsWith('+');
     var digitsOnly = new string(cleaned.Where(char.IsDigit).ToArray());
+    if (digitsOnly.Length == 0) return null;
     return startsWithPlus ? $"+{digitsOnly}" : digitsOnly;
-  }
-
-  private static string? CleanParentName(string? value)
-  {
-    var cleaned = CleanString(value);
-    if (cleaned is null) return null;
-
-    var titles = new[] { "Br", "Dame", "Dr", "Fr", "Hon", "Lady", "Lord", "Miss", "Mr", "Mrs", "Ms", "Prof", "Pstr", "Rev", "Sir", "Sr" };
-
-    var parts = cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    if (parts.Length == 0) return null;
-
-    var hasTitle = titles.Contains(parts[0], StringComparer.OrdinalIgnoreCase);
-    var title = hasTitle ? parts[0] : null;
-    var index = hasTitle ? 1 : 0;
-
-    if (index >= parts.Length) return title;
-    if (parts.Length - index == 1) return string.Join(" ", new[] { title, parts[index] }.Where(x => !string.IsNullOrWhiteSpace(x)));
-
-    var firstInitial = char.ToUpperInvariant(parts[index][0]).ToString();
-    var surnameStart = index + 1;
-    while (surnameStart < parts.Length && parts[surnameStart].Length == 1) surnameStart++;
-    var surname = surnameStart < parts.Length ? string.Join(" ", parts[surnameStart..]) : null;
-
-    return string.Join(" ", new[] { title, firstInitial, surname }.Where(x => !string.IsNullOrWhiteSpace(x)));
   }
 
   private static string? CleanClassName(string? value)
