@@ -345,6 +345,7 @@ var udfData = await client.GetUdfDataAsync();
 | `Date` | `DateTime` |
 | `Points` | `int` |
 | `IsProcessed` | `bool` |
+| `ReviewedBy` | `string?` |
 | `Comment` | `string?` |
 | `InternalComment` | `string?` |
 | `Classifications` | `List<string>?` |

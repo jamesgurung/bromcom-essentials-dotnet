@@ -278,6 +278,7 @@ internal sealed class BehaviourEventPostContract : BehaviourEventContract
 internal sealed class BehaviourEventGetContract : BehaviourEventContract
 {
   public bool Processed { get; set; }
+  public string? ReviewedBy { get; set; }
 }
 
 internal sealed class BehaviourEventClassificationContract

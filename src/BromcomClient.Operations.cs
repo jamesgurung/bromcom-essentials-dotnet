@@ -373,6 +373,7 @@ public partial class BromcomClient
       Date = x.DateTime.GetValueOrDefault(),
       Points = x.Row.Adjustment,
       IsProcessed = x.Row.Processed,
+      ReviewedBy = CleanString(x.Row.ReviewedBy),
       Comment = CleanString(x.Row.Comment),
       InternalComment = CleanString(x.Row.InternalComment),
       Classifications = includeClassifications ? classificationsByEventId.GetValueOrDefault(x.Row.EventRecordId) ?? [] : null,
