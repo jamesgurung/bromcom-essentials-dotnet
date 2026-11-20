@@ -7,6 +7,7 @@ namespace BromcomEssentials;
 [JsonSerializable(typeof(ApiResponse<ClassContract>))]
 [JsonSerializable(typeof(ApiResponse<UdfDataContract>))]
 [JsonSerializable(typeof(ApiResponse<StudentFlatViewContract>))]
+[JsonSerializable(typeof(ApiResponse<StudentImportedCtfAssessmentContract>))]
 [JsonSerializable(typeof(ApiResponse<StudentContactContract>))]
 [JsonSerializable(typeof(ApiResponse<PersonContract>))]
 [JsonSerializable(typeof(ApiResponse<PersonCommunicationsContract>))]

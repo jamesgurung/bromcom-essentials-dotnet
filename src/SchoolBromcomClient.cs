@@ -24,14 +24,13 @@ public sealed class SchoolBromcomClient : IDisposable
   public Task<IReadOnlyList<SchoolClass>> GetClassesAsync(CancellationToken cancellationToken = default) =>
     _client.GetClassesAsync(_schoolId, cancellationToken);
 
-  /// <summary>Gets students and their contacts, with optional class and timetable data.</summary>
-  public Task<IReadOnlyList<Student>> GetStudentsAsync(bool includeClasses = false, bool includeTimetable = false,
-    CancellationToken cancellationToken = default) =>
-    _client.GetStudentsAsync(_schoolId, includeClasses, includeTimetable, cancellationToken);
+  /// <summary>Gets students, including contacts, imported KS2 results, classes, and timetables.</summary>
+  public Task<IReadOnlyList<Student>> GetStudentsAsync(CancellationToken cancellationToken = default) =>
+    _client.GetStudentsAsync(_schoolId, cancellationToken);
 
-  /// <summary>Gets staff, with optional class and timetable data.</summary>
-  public Task<IReadOnlyList<Staff>> GetStaffAsync(bool includeClassesAndTimetable = false, CancellationToken cancellationToken = default) =>
-    _client.GetStaffAsync(_schoolId, includeClassesAndTimetable, cancellationToken);
+  /// <summary>Gets staff, including classes and timetables.</summary>
+  public Task<IReadOnlyList<Staff>> GetStaffAsync(CancellationToken cancellationToken = default) =>
+    _client.GetStaffAsync(_schoolId, cancellationToken);
 
   /// <summary>Gets person and photo identifiers.</summary>
   public Task<List<PersonPhotoId>> GetPhotoIdsAsync(CancellationToken cancellationToken = default) =>

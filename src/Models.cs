@@ -26,7 +26,7 @@ public sealed class UdfData
   public string? Value { get; init; }
 }
 
-/// <summary>Basic student details and contacts, with optional class and timetable data.</summary>
+/// <summary>Basic student details, contacts, KS2 results, classes, and timetable data.</summary>
 [DebuggerDisplay("{Forename,nq} {Surname,nq} {TutorGroup,nq}")]
 public sealed class Student
 {
@@ -70,11 +70,15 @@ public sealed class Student
   public string? TutorGroup { get; init; }
   /// <summary>Gets the student's present attendance percentage, when supplied by Bromcom.</summary>
   public decimal? Attendance { get; init; }
+  /// <summary>Gets the student's imported KS2 reading result, when available.</summary>
+  public string? KS2Reading { get; init; }
+  /// <summary>Gets the student's imported KS2 maths result, when available.</summary>
+  public string? KS2Maths { get; init; }
   /// <summary>Gets all contacts linked to the student, ordered by contact priority.</summary>
   public IReadOnlyList<StudentContact> Contacts { get; init; } = [];
-  /// <summary>Gets the student's classes when requested.</summary>
+  /// <summary>Gets the student's classes.</summary>
   public IReadOnlyList<StudentClass> Classes { get; init; } = [];
-  /// <summary>Gets the student's timetable entries when requested.</summary>
+  /// <summary>Gets the student's timetable entries.</summary>
   public IReadOnlyList<StudentTimetableEntry> Timetable { get; init; } = [];
 }
 
@@ -383,7 +387,7 @@ public enum AttendanceCategory
   Invalid
 }
 
-/// <summary>Basic staff details and optional class and timetable data.</summary>
+/// <summary>Basic staff details, classes, and timetable data.</summary>
 [DebuggerDisplay("{Forename,nq} {Surname,nq}")]
 public sealed class Staff
 {
@@ -405,9 +409,9 @@ public sealed class Staff
   public string? JobTitle { get; init; }
   /// <summary>Gets the staff identifier for the line manager.</summary>
   public int? LineManagerId { get; init; }
-  /// <summary>Gets class names associated with the staff member when requested.</summary>
+  /// <summary>Gets class names associated with the staff member.</summary>
   public IReadOnlyList<string> Classes { get; init; } = [];
-  /// <summary>Gets timetable entries for the staff member when requested.</summary>
+  /// <summary>Gets timetable entries for the staff member.</summary>
   public IReadOnlyList<StaffTimetableEntry> Timetable { get; init; } = [];
 }
 

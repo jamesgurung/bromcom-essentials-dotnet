@@ -320,7 +320,7 @@ public partial class BromcomClient
       var eventIds = events.Select(row => row.EventRecordId).Distinct().ToArray();
       var eventRecordFilters = studentIds is { Count: > 0 } || eventTypeIds is { Count: > 0 } || isProcessed is not null
         ? eventIds.Chunk(50).Select(ids => $"({string.Join(" or ", ids.Select(id => FormattableString.Invariant($"eventRecordID={id}")))})")
-        : new[] { FormattableString.Invariant($"eventRecordID>={eventIds.Min()} and eventRecordID<={eventIds.Max()}") };
+        : [FormattableString.Invariant($"eventRecordID>={eventIds.Min()} and eventRecordID<={eventIds.Max()}")];
       using var requestLimit = new SemaphoreSlim(4);
 
       async Task<T[]> GetRelatedRecordsAsync<T>(string path)

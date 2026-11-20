@@ -202,18 +202,15 @@ public partial class BromcomClient
     }).OrderBy(x => x.PersonId).ThenBy(x => x.Description).ToList();
   }
 
-  /// <summary>Gets students and their contacts for a school, with optional class and timetable data.</summary>
+  /// <summary>Gets students for a school, including contacts, imported KS2 results, classes, and timetables.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
-  /// <param name="includeClasses">Whether to include class memberships for each student.</param>
-  /// <param name="includeTimetable">Whether to include timetable entries for each student.</param>
   /// <param name="cancellationToken">A token that can cancel the request.</param>
   /// <returns>A list of students ordered by surname, forename, year group, and tutor group.</returns>
   /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
   /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
   /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
-  public async Task<IReadOnlyList<Student>> GetStudentsAsync(int schoolId, bool includeClasses = false, bool includeTimetable = false,
-    CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<Student>> GetStudentsAsync(int schoolId, CancellationToken cancellationToken = default)
   {
     ValidateRequest(schoolId);
 
@@ -223,38 +220,32 @@ public partial class BromcomClient
     var studentIds = students.Select(row => row.StudentId).ToHashSet();
     var studentFilter = BuildIdRangeFilter("studentID", studentIds);
     var contactsTask = GetStudentContactsByStudentIdAsync(schoolId, studentIds, studentFilter, cancellationToken);
-    var classesTask = includeClasses
-      ? GetAsync<YearGroupSubjectStudentContract>("/v2/YearGroupSubjectStudents", schoolId, $"{BuildDefaultEntityFilter(null)} and {studentFilter}", null, cancellationToken)
-      : Task.FromResult<IReadOnlyList<YearGroupSubjectStudentContract>>([]);
-    var timetableTask = includeTimetable
-      ? GetTimetableRowsAsync(schoolId, cancellationToken, studentIds)
-      : Task.FromResult<List<TimetableContract>>([]);
-    await Task.WhenAll(contactsTask, classesTask, timetableTask).ConfigureAwait(false);
+    var assessmentsTask = GetAsync<StudentImportedCtfAssessmentContract>("/v2/StudentImportedCtfAssessments", schoolId,
+      $"stage='KS2' and (component='MSS' or component='RSS') and {studentFilter}", null, cancellationToken);
+    var classesTask = GetAsync<YearGroupSubjectStudentContract>("/v2/YearGroupSubjectStudents", schoolId,
+      $"{BuildDefaultEntityFilter(null)} and {studentFilter}", null, cancellationToken);
+    var timetableTask = GetTimetableRowsAsync(schoolId, cancellationToken, studentIds);
+    await Task.WhenAll(contactsTask, assessmentsTask, classesTask, timetableTask).ConfigureAwait(false);
 
     var contactsByStudentId = await contactsTask.ConfigureAwait(false);
-    var classesByStudentId = new Dictionary<int, List<StudentClass>>();
-    var timetableByStudentId = new Dictionary<int, List<StudentTimetableEntry>>();
+    var assessments = await assessmentsTask.ConfigureAwait(false);
+    var assessmentResults = assessments.Where(row => studentIds.Contains(row.StudentId) && !string.IsNullOrWhiteSpace(row.Result))
+      .GroupBy(row => (row.StudentId, row.Component))
+      .ToDictionary(g => g.Key, g => CleanString(g.OrderByDescending(row => row.ResultDate).First().Result));
+    var classes = await classesTask.ConfigureAwait(false);
+    var classesByStudentId = classes.Where(x => studentIds.Contains(x.StudentId) && !string.IsNullOrWhiteSpace(x.ClassName)).GroupBy(x => x.StudentId).ToDictionary(
+      g => g.Key,
+      g => g.Select(x => new StudentClass { Name = CleanClassName(x.ClassName)!, Subject = CleanString(x.SubjectDescription) })
+        .DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList());
 
-    if (includeClasses)
-    {
-      var classes = await classesTask.ConfigureAwait(false);
-      classesByStudentId = classes.Where(x => studentIds.Contains(x.StudentId) && !string.IsNullOrWhiteSpace(x.ClassName)).GroupBy(x => x.StudentId).ToDictionary(
+    var timetableRows = await timetableTask.ConfigureAwait(false);
+    var timetableByStudentId = timetableRows
+      .Where(x => !string.IsNullOrWhiteSpace(x.WeekDayPeriod) && !string.IsNullOrWhiteSpace(x.ClassName) && x.StudentId is not null)
+      .GroupBy(x => x.StudentId!.Value)
+      .ToDictionary(
         g => g.Key,
-        g => g.Select(x => new StudentClass { Name = CleanClassName(x.ClassName)!, Subject = CleanString(x.SubjectDescription) })
-          .DistinctBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList());
-    }
-
-    if (includeTimetable)
-    {
-      var timetableRows = await timetableTask.ConfigureAwait(false);
-      timetableByStudentId = timetableRows
-        .Where(x => !string.IsNullOrWhiteSpace(x.WeekDayPeriod) && !string.IsNullOrWhiteSpace(x.ClassName) && x.StudentId is not null)
-        .GroupBy(x => x.StudentId!.Value)
-        .ToDictionary(
-          g => g.Key,
-          g => g.OrderBy(x => x.PeriodStartDate).GroupBy(x => x.WeekDayPeriod, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
-            .Select(x => new StudentTimetableEntry { Period = x.WeekDayPeriod, Class = CleanClassName(x.ClassName), Room = CleanRoom(x.LocationName), TeacherCode = x.StaffCode }).ToList());
-    }
+        g => g.OrderBy(x => x.PeriodStartDate).GroupBy(x => x.WeekDayPeriod, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
+          .Select(x => new StudentTimetableEntry { Period = x.WeekDayPeriod, Class = CleanClassName(x.ClassName), Room = CleanRoom(x.LocationName), TeacherCode = x.StaffCode }).ToList());
 
     return students.DistinctBy(row => row.StudentId).Select(row => new Student
     {
@@ -278,55 +269,48 @@ public partial class BromcomClient
       Attendance = row.PresentPercentageWithEA,
       YearGroup = ParseNullableInt(row.YearGroup),
       TutorGroup = CleanTutorGroup(row.TutorGroupName),
+      KS2Reading = assessmentResults.GetValueOrDefault((row.StudentId, "RSS")),
+      KS2Maths = assessmentResults.GetValueOrDefault((row.StudentId, "MSS")),
       Contacts = contactsByStudentId.TryGetValue(row.StudentId, out var contacts) ? contacts : [],
       Classes = classesByStudentId.TryGetValue(row.StudentId, out var classes) ? classes : [],
       Timetable = timetableByStudentId.TryGetValue(row.StudentId, out var timetable) ? timetable : []
     }).OrderBy(s => s.Surname).ThenBy(s => s.Forename).ThenBy(s => s.YearGroup).ThenBy(s => s.TutorGroup).ToList();
   }
 
-  /// <summary>Gets staff for a school, with optional class and timetable data.</summary>
+  /// <summary>Gets staff for a school, including classes and timetables.</summary>
   /// <param name="schoolId">The Bromcom school identifier.</param>
-  /// <param name="includeClassesAndTimetable">Whether to include class names and timetable entries for each staff member.</param>
   /// <param name="cancellationToken">A token that can cancel the request.</param>
   /// <returns>A list of staff ordered by surname, forename, and staff code.</returns>
   /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="schoolId"/> is not positive.</exception>
   /// <exception cref="ObjectDisposedException">Thrown when the client has been disposed.</exception>
   /// <exception cref="HttpRequestException">Thrown when the Bromcom API returns an unsuccessful status code.</exception>
   /// <exception cref="InvalidOperationException">Thrown when the Bromcom API response is invalid or unsuccessful.</exception>
-  public async Task<IReadOnlyList<Staff>> GetStaffAsync(int schoolId, bool includeClassesAndTimetable = false, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<Staff>> GetStaffAsync(int schoolId, CancellationToken cancellationToken = default)
   {
     ValidateRequest(schoolId);
 
     var staffTask = GetAsync<StaffContract>("/v2/Staff", schoolId, null, null, cancellationToken);
     var lineManagersTask = GetAsync<StaffLineManagerContract>("/v2/StaffLineManagers", schoolId, null, null, cancellationToken);
-    var timetableTask = includeClassesAndTimetable
-      ? GetTimetableRowsAsync(schoolId, cancellationToken)
-      : Task.FromResult<List<TimetableContract>>([]);
+    var timetableTask = GetTimetableRowsAsync(schoolId, cancellationToken);
     await Task.WhenAll(staffTask, lineManagersTask, timetableTask).ConfigureAwait(false);
 
     var staff = await staffTask.ConfigureAwait(false);
     var lineManagers = await lineManagersTask.ConfigureAwait(false);
     var lineManagerIdsByStaffId = lineManagers.GroupBy(row => row.EmployeeId).ToDictionary(g => g.Key, g => g.First().LineManagerEmployeeId);
-    var classesByStaffId = new Dictionary<int, List<string>>();
-    var timetableByStaffId = new Dictionary<int, List<StaffTimetableEntry>>();
-
-    if (includeClassesAndTimetable)
-    {
-      var timetableRows = await timetableTask.ConfigureAwait(false);
-      classesByStaffId = timetableRows
-        .Where(x => x.StaffId is not null && !string.IsNullOrWhiteSpace(x.ClassName))
-        .GroupBy(x => x.StaffId!.Value)
-        .ToDictionary(
-          g => g.Key,
-          g => g.Select(x => CleanClassName(x.ClassName)!).Distinct(StringComparer.OrdinalIgnoreCase).ToList());
-      timetableByStaffId = timetableRows
-        .Where(x => x.StaffId is not null && !string.IsNullOrWhiteSpace(x.WeekDayPeriod) && !string.IsNullOrWhiteSpace(x.TimetableEntry))
-        .GroupBy(x => x.StaffId!.Value)
-        .ToDictionary(
-          g => g.Key,
-          g => g.OrderBy(x => x.PeriodStartDate).GroupBy(x => x.WeekDayPeriod, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
-            .Select(x => new StaffTimetableEntry { Period = x.WeekDayPeriod, Class = CleanClassName(x.TimetableEntry), Room = CleanRoom(x.LocationName) }).ToList());
-    }
+    var timetableRows = await timetableTask.ConfigureAwait(false);
+    var classesByStaffId = timetableRows
+      .Where(x => x.StaffId is not null && !string.IsNullOrWhiteSpace(x.ClassName))
+      .GroupBy(x => x.StaffId!.Value)
+      .ToDictionary(
+        g => g.Key,
+        g => g.Select(x => CleanClassName(x.ClassName)!).Distinct(StringComparer.OrdinalIgnoreCase).ToList());
+    var timetableByStaffId = timetableRows
+      .Where(x => x.StaffId is not null && !string.IsNullOrWhiteSpace(x.WeekDayPeriod) && !string.IsNullOrWhiteSpace(x.TimetableEntry))
+      .GroupBy(x => x.StaffId!.Value)
+      .ToDictionary(
+        g => g.Key,
+        g => g.OrderBy(x => x.PeriodStartDate).GroupBy(x => x.WeekDayPeriod, StringComparer.OrdinalIgnoreCase).Select(g => g.First())
+          .Select(x => new StaffTimetableEntry { Period = x.WeekDayPeriod, Class = CleanClassName(x.TimetableEntry), Room = CleanRoom(x.LocationName) }).ToList());
 
     return staff.Where(row => !string.IsNullOrWhiteSpace(row.StaffCode)).DistinctBy(row => row.StaffId).Select(row => new Staff
     {

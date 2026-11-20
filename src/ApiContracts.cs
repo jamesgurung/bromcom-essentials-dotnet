@@ -48,6 +48,14 @@ internal sealed class StudentFlatViewContract
   public string? TutorGroupName { get; set; }
 }
 
+internal sealed class StudentImportedCtfAssessmentContract
+{
+  public int StudentId { get; set; }
+  public string? Component { get; set; }
+  public string? Result { get; set; }
+  public DateTimeOffset? ResultDate { get; set; }
+}
+
 internal sealed class StudentContactContract
 {
   public int StudentId { get; set; }

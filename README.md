@@ -81,6 +81,8 @@ var udfData = await client.GetUdfDataAsync();
 | `Attendance` | `decimal?` |
 | `YearGroup` | `int?` |
 | `TutorGroup` | `string?` |
+| `KS2Reading` | `string?` |
+| `KS2Maths` | `string?` |
 | `Contacts` | `IReadOnlyList<StudentContact>` |
 | `Classes` | `IReadOnlyList<StudentClass>` |
 | `Timetable` | `IReadOnlyList<StudentTimetableEntry>` |
@@ -507,6 +509,7 @@ var udfData = await client.GetUdfDataAsync();
 * `GET /v2/StudentDocumentObject`
 * `GET /v2/StudentDocumentObjects`
 * `GET /v2/StudentFlatView`
+* `GET /v2/StudentImportedCtfAssessments`
 * `GET /v2/StudentParentalConsent`
 * `GET /v2/StudentTimetables`
 * `GET /v2/Subjects`
