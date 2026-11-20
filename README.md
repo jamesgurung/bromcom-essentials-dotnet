@@ -430,6 +430,7 @@ var udfData = await client.GetUdfDataAsync();
 | `PeriodName` | `string` |
 | `Code` | `string?` |
 | `Comment` | `string?` |
+| `ModifiedBy` | `string?` |
 | `Category` | `AttendanceCategory` |
 
 #### `SessionAttendance`

@@ -428,6 +428,7 @@ internal sealed class BasicAttendanceContract
   public string? MarkSubCode { get; set; }
   public string? PeriodDisplayName { get; set; }
   public string? AttendanceComment { get; set; }
+  public string? ModifiedBy { get; set; }
 }
 
 internal sealed class AttendancePostContract

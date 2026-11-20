@@ -113,7 +113,8 @@ public partial class BromcomClient
       Date = ParseDateOnly(row.CalendarStartDate) ?? startDate,
       PeriodName = CleanString(row.PeriodDisplayName),
       Code = CleanString(row.MarkSubCode) ?? CleanString(row.Mark),
-      Comment = CleanString(row.AttendanceComment)
+      Comment = CleanString(row.AttendanceComment),
+      ModifiedBy = CleanString(row.ModifiedBy)
     })
       .Where(row => row.PeriodName is not null)
       .Select(row => new PeriodAttendance
@@ -123,6 +124,7 @@ public partial class BromcomClient
         PeriodName = row.PeriodName!,
         Code = row.Code,
         Comment = row.Comment,
+        ModifiedBy = row.ModifiedBy,
         Category = BuildAttendanceCategory(row.Code)
       })
       .OrderBy(x => x.StudentId)

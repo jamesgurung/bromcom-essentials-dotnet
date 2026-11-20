@@ -335,6 +335,8 @@ public sealed class PeriodAttendance
   public string? Code { get; init; }
   /// <summary>Gets the attendance comment.</summary>
   public string? Comment { get; init; }
+  /// <summary>Gets who modified the attendance mark.</summary>
+  public string? ModifiedBy { get; init; }
   /// <summary>Gets the attendance category inferred from the mark code.</summary>
   public AttendanceCategory Category { get; init; }
 }
